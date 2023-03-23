@@ -3,6 +3,7 @@ using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using Microsoft.Extensions.DependencyInjection;
+using ToneAudioPlayer.Services;
 using ToneAudioPlayer.ViewModels;
 using ToneAudioPlayer.Views;
 
@@ -40,9 +41,13 @@ public partial class App : Application
     private static ServiceProvider ConfigureServices()
     {
         var services = new ServiceCollection();
+        services.AddSingleton<Router>();
+        
+        
         services.AddSingleton<MainViewModel>();
-	
-        //services.AddTransient<SecondaryViewModel>();
+        services.AddTransient<HomeViewModel>();
+        services.AddTransient<SettingsViewModel>();
+
         return services.BuildServiceProvider();
     }
 }
