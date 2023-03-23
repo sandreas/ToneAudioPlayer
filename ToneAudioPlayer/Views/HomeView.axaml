@@ -4,5 +4,41 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="ToneAudioPlayer.Views.HomeView">
-  Home
+  <Grid ColumnDefinitions="*,*" RowDefinitions="*,*" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+        <!--
+      <Image Grid.Row="0" Grid.Column="0" HorizontalAlignment="Center" VerticalAlignment="Center" Stretch="Uniform" Source="{StaticResource Marble}" />
+      -->
+        <Viewbox Grid.Row="0" Grid.Column="0">
+            <Button Background="Transparent" Margin="10" >
+                <StackPanel>
+                    <Svg Path="/Assets/Home/music.svg" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    <TextBlock Margin="8,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center">Music</TextBlock>
+                </StackPanel>
+            </Button>
+        </Viewbox>
+        <Viewbox Grid.Row="0" Grid.Column="1">
+          <Button Background="Transparent" Margin="10" >
+            <StackPanel>
+              <Svg Path="/Assets/Home/audio_books.svg" HorizontalAlignment="Center" VerticalAlignment="Center" />
+              <TextBlock Margin="8,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center">Books</TextBlock>
+            </StackPanel>
+          </Button>
+        </Viewbox>
+        <Viewbox Grid.Row="1" Grid.Column="0">
+          <Button Background="Transparent" Margin="10" >
+            <StackPanel>
+              <Svg Path="/Assets/Home/settings.svg" HorizontalAlignment="Center" VerticalAlignment="Center" />
+              <TextBlock Margin="8,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center">Settings</TextBlock>
+            </StackPanel>
+          </Button>
+        </Viewbox>
+        <Viewbox Grid.Row="1" Grid.Column="1">
+          <Button Background="Transparent" Margin="10" >
+            <StackPanel>
+              <Svg Path="/Assets/Home/search.svg" HorizontalAlignment="Center" VerticalAlignment="Center" />
+              <TextBlock Margin="8,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center">Search</TextBlock>
+            </StackPanel>
+          </Button>
+        </Viewbox>
+    </Grid>
 </UserControl>
