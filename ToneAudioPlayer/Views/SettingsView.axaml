@@ -2,7 +2,93 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:viewModels="clr-namespace:ToneAudioPlayer.ViewModels"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:Class="ToneAudioPlayer.Views.SettingsView">
-  Settings
+             x:Class="ToneAudioPlayer.Views.SettingsView"
+             x:DataType="viewModels:SettingsViewModel">
+
+    <ScrollViewer>
+        <Grid ColumnDefinitions="*" RowDefinitions="*,*,*,*,*,*,*,*,*,*,*,*,*" HorizontalAlignment="Stretch"
+              VerticalAlignment="Stretch" MaxWidth="800">
+
+            <Button Grid.Row="0" Margin="10" Command="{Binding NavigateCommand}" CommandParameter="back">
+                <Grid RowDefinitions="*" ColumnDefinitions="*,5*">
+                    <Svg Grid.Column="0" Path="/Assets/Home/music.svg" HorizontalAlignment="Center"
+                         VerticalAlignment="Center"/>
+                    <Viewbox Grid.Column="1">
+                        <TextBlock Margin="8,0,0,0">Go back</TextBlock>
+                    </Viewbox>
+                </Grid>
+            </Button>
+
+            <!--
+            <Viewbox Grid.Row="1" StretchDirection="UpOnly">
+                <Button Command="{Binding NavigateCommand}" CommandParameter="back" MinWidth="250">go back</Button>
+            </Viewbox>
+            <Viewbox Grid.Row="2" StretchDirection="UpOnly">
+                <Button Command="{Binding NavigateCommand}" CommandParameter="back" MinWidth="250">go back</Button>
+            </Viewbox>
+            <Viewbox Grid.Row="3" StretchDirection="UpOnly">
+                <Button Command="{Binding NavigateCommand}" CommandParameter="back" MinWidth="250">go back</Button>
+            </Viewbox>
+            <Viewbox Grid.Row="4" StretchDirection="UpOnly">
+                <Button Command="{Binding NavigateCommand}" CommandParameter="back" MinWidth="250">go back</Button>
+            </Viewbox>
+            <Viewbox Grid.Row="5" StretchDirection="UpOnly">
+                <Button Command="{Binding NavigateCommand}" CommandParameter="back" MinWidth="250">go back</Button>
+            </Viewbox>
+            <Viewbox Grid.Row="6" StretchDirection="UpOnly">
+                <Button Command="{Binding NavigateCommand}" CommandParameter="back" MinWidth="250">go back</Button>
+            </Viewbox>
+            <Viewbox Grid.Row="7" StretchDirection="UpOnly">
+                <Button Command="{Binding NavigateCommand}" CommandParameter="back" MinWidth="250">go back</Button>
+            </Viewbox>
+            <Viewbox Grid.Row="8" StretchDirection="UpOnly">
+                <Button Command="{Binding NavigateCommand}" CommandParameter="back" MinWidth="250">go back</Button>
+            </Viewbox>
+            <Viewbox Grid.Row="9" StretchDirection="UpOnly">
+                <Button Command="{Binding NavigateCommand}" CommandParameter="back" MinWidth="250">go back</Button>
+            </Viewbox>
+            <Viewbox Grid.Row="10" StretchDirection="UpOnly">
+                <Button Command="{Binding NavigateCommand}" CommandParameter="back" MinWidth="250">go back</Button>
+            </Viewbox>
+            <Viewbox Grid.Row="11" StretchDirection="UpOnly">
+                <Button Command="{Binding NavigateCommand}" CommandParameter="back" MinWidth="250">go back</Button>
+            </Viewbox>
+            -->
+        </Grid>
+    </ScrollViewer>
+    <!--
+    <ScrollViewer>
+        <StackPanel>
+            <Button Command="{Binding NavigateCommand}" CommandParameter="back">go back</Button>
+            <Button Command="{Binding NavigateCommand}" CommandParameter="back">go back</Button>
+            <Button Command="{Binding NavigateCommand}" CommandParameter="back">go back</Button>
+            <Button Command="{Binding NavigateCommand}" CommandParameter="back">go back</Button>
+            <Button Command="{Binding NavigateCommand}" CommandParameter="back">go back</Button>
+            <Button Command="{Binding NavigateCommand}" CommandParameter="back">go back</Button>
+            <Button Command="{Binding NavigateCommand}" CommandParameter="back">go back</Button>
+            <Button Command="{Binding NavigateCommand}" CommandParameter="back">go back</Button>
+            <Button Command="{Binding NavigateCommand}" CommandParameter="back">go back</Button>
+            <Button Command="{Binding NavigateCommand}" CommandParameter="back">go back</Button>
+            <Button Command="{Binding NavigateCommand}" CommandParameter="back">go back</Button>
+            <Button Command="{Binding NavigateCommand}" CommandParameter="back">go back</Button>
+            <Button Command="{Binding NavigateCommand}" CommandParameter="back">go back</Button>
+            <Button Command="{Binding NavigateCommand}" CommandParameter="back">go back</Button>
+            <Button Command="{Binding NavigateCommand}" CommandParameter="back">go back</Button>
+            <Button Command="{Binding NavigateCommand}" CommandParameter="back">go back</Button>
+            <Button Command="{Binding NavigateCommand}" CommandParameter="back">go back</Button>
+            <Button Command="{Binding NavigateCommand}" CommandParameter="back">go back</Button>
+            <Button Command="{Binding NavigateCommand}" CommandParameter="back">go back</Button>
+            <Button Command="{Binding NavigateCommand}" CommandParameter="back">go back</Button>
+            <Button Command="{Binding NavigateCommand}" CommandParameter="back">go back</Button>
+            <Button Command="{Binding NavigateCommand}" CommandParameter="back">go back</Button>
+            <Button Command="{Binding NavigateCommand}" CommandParameter="back">go back</Button>
+            <Button Command="{Binding NavigateCommand}" CommandParameter="back">go back</Button>
+            <Button Command="{Binding NavigateCommand}" CommandParameter="back">go back</Button>
+            <Button Command="{Binding NavigateCommand}" CommandParameter="back">go back</Button>
+            <Button Command="{Binding NavigateCommand}" CommandParameter="back">go back</Button>
+        </StackPanel>
+    </ScrollViewer>
+    -->
 </UserControl>

@@ -2,14 +2,17 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:viewModels="clr-namespace:ToneAudioPlayer.ViewModels"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:Class="ToneAudioPlayer.Views.HomeView">
+             x:Class="ToneAudioPlayer.Views.HomeView"
+             x:DataType="viewModels:HomeViewModel"
+             >
   <Grid ColumnDefinitions="*,*" RowDefinitions="*,*" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
         <!--
       <Image Grid.Row="0" Grid.Column="0" HorizontalAlignment="Center" VerticalAlignment="Center" Stretch="Uniform" Source="{StaticResource Marble}" />
       -->
         <Viewbox Grid.Row="0" Grid.Column="0">
-            <Button Background="Transparent" Margin="10" >
+            <Button Background="Transparent" Margin="10" Command="{Binding NavigateCommand}" CommandParameter="music">
                 <StackPanel>
                     <Svg Path="/Assets/Home/music.svg" HorizontalAlignment="Center" VerticalAlignment="Center" />
                     <TextBlock Margin="8,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center">Music</TextBlock>
@@ -17,7 +20,7 @@
             </Button>
         </Viewbox>
         <Viewbox Grid.Row="0" Grid.Column="1">
-          <Button Background="Transparent" Margin="10" >
+          <Button Background="Transparent" Margin="10" Command="{Binding NavigateCommand}" CommandParameter="audiobooks">
             <StackPanel>
               <Svg Path="/Assets/Home/audio_books.svg" HorizontalAlignment="Center" VerticalAlignment="Center" />
               <TextBlock Margin="8,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center">Books</TextBlock>
@@ -25,7 +28,7 @@
           </Button>
         </Viewbox>
         <Viewbox Grid.Row="1" Grid.Column="0">
-          <Button Background="Transparent" Margin="10" >
+          <Button Background="Transparent" Margin="10" Command="{Binding NavigateCommand}" CommandParameter="settings">
             <StackPanel>
               <Svg Path="/Assets/Home/settings.svg" HorizontalAlignment="Center" VerticalAlignment="Center" />
               <TextBlock Margin="8,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center">Settings</TextBlock>
@@ -33,7 +36,7 @@
           </Button>
         </Viewbox>
         <Viewbox Grid.Row="1" Grid.Column="1">
-          <Button Background="Transparent" Margin="10" >
+          <Button Background="Transparent" Margin="10" Command="{Binding NavigateCommand}" CommandParameter="search">
             <StackPanel>
               <Svg Path="/Assets/Home/search.svg" HorizontalAlignment="Center" VerticalAlignment="Center" />
               <TextBlock Margin="8,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center">Search</TextBlock>
