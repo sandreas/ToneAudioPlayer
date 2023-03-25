@@ -9,7 +9,7 @@ public partial class MainViewModel : ViewModelBase
     [ObservableProperty]
     private ViewModelBase _content = default!;
 
-    public MainViewModel(Router router)
+    public MainViewModel(Router<ViewModelBase> router)
     {
         router.CurrentViewModelChanged += viewModel => Content = viewModel;
         router.GoTo<HomeViewModel>();
