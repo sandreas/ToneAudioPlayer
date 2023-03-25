@@ -3,45 +3,42 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:viewModels="clr-namespace:ToneAudioPlayer.ViewModels"
+             xmlns:controls="clr-namespace:ToneAudioPlayer.Controls"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="ToneAudioPlayer.Views.HomeView"
-             x:DataType="viewModels:HomeViewModel"
-             >
-  <Grid ColumnDefinitions="*,*" RowDefinitions="*,*" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-        <!--
-      <Image Grid.Row="0" Grid.Column="0" HorizontalAlignment="Center" VerticalAlignment="Center" Stretch="Uniform" Source="{StaticResource Marble}" />
-      -->
+             x:DataType="viewModels:HomeViewModel">
+    <UserControl.Styles>
+        <Style Selector="Button">
+            <Setter Property="Background" Value="Transparent"></Setter>
+            <Setter Property="Margin" Value="10"></Setter>
+        </Style>
+        <Style Selector="Svg,TextBlock">
+            <Setter Property="HorizontalAlignment" Value="Center"></Setter>
+            <Setter Property="VerticalAlignment" Value="Center"></Setter>
+        </Style>
+        <Style Selector="TextBlock">
+            <Setter Property="Margin" Value="8,0,0,0"></Setter>
+        </Style>
+    </UserControl.Styles>
+    <Grid ColumnDefinitions="*,*" RowDefinitions="*,*,*" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
         <Viewbox Grid.Row="0" Grid.Column="0">
-            <Button Background="Transparent" Margin="10" Command="{Binding NavigateCommand}" CommandParameter="music">
-                <StackPanel>
-                    <Svg Path="/Assets/Home/music.svg" HorizontalAlignment="Center" VerticalAlignment="Center" />
-                    <TextBlock Margin="8,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center">Music</TextBlock>
-                </StackPanel>
-            </Button>
+            <controls:HomeButton Text="Music" Icon="/Assets/Home/music.svg" Command="{Binding NavigateCommand}"
+                                 CommandParameter="music" />
         </Viewbox>
+
         <Viewbox Grid.Row="0" Grid.Column="1">
-          <Button Background="Transparent" Margin="10" Command="{Binding NavigateCommand}" CommandParameter="audiobooks">
-            <StackPanel>
-              <Svg Path="/Assets/Home/audio_books.svg" HorizontalAlignment="Center" VerticalAlignment="Center" />
-              <TextBlock Margin="8,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center">Books</TextBlock>
-            </StackPanel>
-          </Button>
+            <controls:HomeButton Text="Books" Icon="/Assets/Home/audio_books.svg" Command="{Binding NavigateCommand}"
+                                 CommandParameter="audiobooks" />
         </Viewbox>
         <Viewbox Grid.Row="1" Grid.Column="0">
-          <Button Background="Transparent" Margin="10" Command="{Binding NavigateCommand}" CommandParameter="settings">
-            <StackPanel>
-              <Svg Path="/Assets/Home/settings.svg" HorizontalAlignment="Center" VerticalAlignment="Center" />
-              <TextBlock Margin="8,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center">Settings</TextBlock>
-            </StackPanel>
-          </Button>
+            <controls:HomeButton Text="Settings" Icon="/Assets/Home/settings.svg" Command="{Binding NavigateCommand}"
+                                 CommandParameter="settings" />
         </Viewbox>
         <Viewbox Grid.Row="1" Grid.Column="1">
-          <Button Background="Transparent" Margin="10" Command="{Binding NavigateCommand}" CommandParameter="search">
-            <StackPanel>
-              <Svg Path="/Assets/Home/search.svg" HorizontalAlignment="Center" VerticalAlignment="Center" />
-              <TextBlock Margin="8,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center">Search</TextBlock>
-            </StackPanel>
-          </Button>
+            <controls:HomeButton Text="Search" Icon="/Assets/Home/search.svg" Command="{Binding NavigateCommand}"
+                                 CommandParameter="search" />
+        </Viewbox>
+        <Viewbox Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2">
         </Viewbox>
     </Grid>
 </UserControl>

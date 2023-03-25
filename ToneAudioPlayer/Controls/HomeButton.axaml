@@ -1,0 +1,29 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:controls="clr-namespace:ToneAudioPlayer.Controls"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="ToneAudioPlayer.Controls.HomeButton"
+             x:DataType="controls:HomeButton"
+             Name="Root">
+    <UserControl.Styles>
+        <Style Selector="Button">
+            <Setter Property="Background" Value="Transparent"></Setter>
+            <Setter Property="Margin" Value="10"></Setter>
+        </Style>
+        <Style Selector="Svg,TextBlock">
+            <Setter Property="HorizontalAlignment" Value="Center"></Setter>
+            <Setter Property="VerticalAlignment" Value="Center"></Setter>
+        </Style>
+        <Style Selector="TextBlock">
+            <Setter Property="Margin" Value="8,0,0,0"></Setter>
+        </Style>
+    </UserControl.Styles>
+    <Button Command="{Binding #Root.Command}" CommandParameter="{Binding #Root.CommandParameter}">
+        <StackPanel>
+            <Svg Path="{Binding #Root.Icon}" /><!--{Binding Icon}-->
+            <TextBlock Text="{Binding #Root.Text}"></TextBlock>
+        </StackPanel>
+    </Button>
+</UserControl>
