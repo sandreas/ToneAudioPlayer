@@ -9,20 +9,17 @@
 
     <ScrollViewer>
         <StackPanel HorizontalAlignment="Stretch" Background="Green">
-            <Button Command="{Binding NavigateCommand}" CommandParameter="back" HorizontalAlignment="Stretch" MaxHeight="80">
-                <Grid HorizontalAlignment="Stretch" ColumnDefinitions="*,5*">
-                    <Viewbox Grid.Column="0">
-
-                    <Svg Grid.Column="0" Path="/Assets/Home/music.svg" HorizontalAlignment="Center"
-                         VerticalAlignment="Center"/>
-                    </Viewbox>
-                    <Viewbox Grid.Column="1">
-                        <TextBlock Margin="8,0,0,0">Go back</TextBlock>
+            <Button Command="{Binding NavigateCommand}" CommandParameter="back" HorizontalAlignment="Stretch"
+                    MaxHeight="80">
+                <Grid ColumnDefinitions="Auto,Auto">
+                    <Svg Grid.Column="0" Path="/Assets/Home/music.svg"  />
+                    <Viewbox Grid.Column="1" HorizontalAlignment="Left">
+                        <TextBlock HorizontalAlignment="Left" Margin="8,0,0,0">Go back</TextBlock>
                     </Viewbox>
                 </Grid>
             </Button>
         </StackPanel>
-        
+
         <!-- does not stretch buttons
 
         <StackPanel HorizontalAlignment="Stretch">
