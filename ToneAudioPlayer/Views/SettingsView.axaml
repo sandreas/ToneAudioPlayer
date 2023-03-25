@@ -9,19 +9,18 @@
 
     <ScrollViewer>
         <StackPanel HorizontalAlignment="Stretch" Background="Green">
-            <Grid ColumnDefinitions="*" RowDefinitions="40" HorizontalAlignment="Stretch">
-                <Viewbox HorizontalAlignment="Stretch">
-                    <Button Command="{Binding NavigateCommand}" CommandParameter="back" HorizontalAlignment="Stretch">
-                        <Grid RowDefinitions="Auto" ColumnDefinitions="Auto,*" HorizontalAlignment="Stretch">
-                            <Svg Path="/Assets/Home/music.svg" Height="18" />
-                            <Viewbox Grid.Column="1">
-                                <TextBlock FontSize="18">Go back</TextBlock>
-                            </Viewbox>
+            <Button Command="{Binding NavigateCommand}" CommandParameter="back" HorizontalAlignment="Stretch">
+                <Viewbox Stretch="Fill" StretchDirection="DownOnly">
+                    <Grid RowDefinitions="Auto" ColumnDefinitions="Auto,*" HorizontalAlignment="Stretch">
+                        <Svg Path="/Assets/Home/music.svg" Height="40" />
+                        <Viewbox Grid.Column="1">
+                            <TextBlock FontSize="40">Go back</TextBlock>
+                        </Viewbox>
 
-                        </Grid>
-                    </Button>
+                    </Grid>
                 </Viewbox>
-            </Grid>
+
+            </Button>
 
             <!--
             <Button Command="{Binding NavigateCommand}" CommandParameter="back" HorizontalAlignment="Stretch"
