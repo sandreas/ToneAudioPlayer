@@ -8,10 +8,49 @@
              x:DataType="viewModels:SettingsViewModel">
 
     <ScrollViewer>
+        <StackPanel HorizontalAlignment="Stretch" Background="Green">
+            <Button Command="{Binding NavigateCommand}" CommandParameter="back" HorizontalAlignment="Stretch" MaxHeight="80">
+                <Grid HorizontalAlignment="Stretch" ColumnDefinitions="*,5*">
+                    <Viewbox Grid.Column="0">
+
+                    <Svg Grid.Column="0" Path="/Assets/Home/music.svg" HorizontalAlignment="Center"
+                         VerticalAlignment="Center"/>
+                    </Viewbox>
+                    <Viewbox Grid.Column="1">
+                        <TextBlock Margin="8,0,0,0">Go back</TextBlock>
+                    </Viewbox>
+                </Grid>
+            </Button>
+        </StackPanel>
+        
+        <!-- does not stretch buttons
+
+        <StackPanel HorizontalAlignment="Stretch">
+            <Button Command="{Binding NavigateCommand}" CommandParameter="back" HorizontalContentAlignment="Stretch">
+                hello
+            </Button>
+        </StackPanel>
+        -->
+        <!-- does not stretch buttons
+        <Grid RowDefinitions="Auto,Auto,Auto,1*" HorizontalAlignment="Stretch"
+              VerticalAlignment="Stretch">
+            <Button Grid.Row="0" Command="{Binding NavigateCommand}" CommandParameter="back" HorizontalContentAlignment="Stretch">
+                hello
+            </Button>
+            <Button Grid.Row="1" Command="{Binding NavigateCommand}" CommandParameter="back" HorizontalContentAlignment="Stretch">
+                hello
+            </Button>
+            <Button Grid.Row="2" Command="{Binding NavigateCommand}" CommandParameter="back" HorizontalContentAlignment="Stretch">
+                hello
+            </Button>
+        </Grid>
+        -->
+        <!--
         <Grid ColumnDefinitions="*" RowDefinitions="*,*,*,*,*,*,*,*,*,*,*,*,*" HorizontalAlignment="Stretch"
               VerticalAlignment="Stretch" MaxWidth="800">
 
-            <Button Grid.Row="0" Margin="10" Command="{Binding NavigateCommand}" CommandParameter="back">
+            <Button Grid.Row="0" Margin="10" Command="{Binding NavigateCommand}" CommandParameter="back"  HorizontalContentAlignment="Stretch" MaxHeight="50">
+                
                 <Grid RowDefinitions="*" ColumnDefinitions="*,5*">
                     <Svg Grid.Column="0" Path="/Assets/Home/music.svg" HorizontalAlignment="Center"
                          VerticalAlignment="Center"/>
@@ -19,9 +58,15 @@
                         <TextBlock Margin="8,0,0,0">Go back</TextBlock>
                     </Viewbox>
                 </Grid>
+                
+                Hello
             </Button>
+            
+            <StackPanel Grid.Row="1" Background="#FFFFFF00">
+                <TextBlock Text="hello"></TextBlock>
+            </StackPanel>
 
-            <!--
+
             <Viewbox Grid.Row="1" StretchDirection="UpOnly">
                 <Button Command="{Binding NavigateCommand}" CommandParameter="back" MinWidth="250">go back</Button>
             </Viewbox>
@@ -55,8 +100,9 @@
             <Viewbox Grid.Row="11" StretchDirection="UpOnly">
                 <Button Command="{Binding NavigateCommand}" CommandParameter="back" MinWidth="250">go back</Button>
             </Viewbox>
-            -->
+           
         </Grid>
+        -->
     </ScrollViewer>
     <!--
     <ScrollViewer>
