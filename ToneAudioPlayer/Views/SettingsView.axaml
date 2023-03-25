@@ -10,8 +10,9 @@
     <ScrollViewer>
         <StackPanel HorizontalAlignment="Stretch" Background="Green">
             <Button Command="{Binding NavigateCommand}" CommandParameter="back" HorizontalAlignment="Stretch">
-                <Viewbox Stretch="Fill" StretchDirection="DownOnly">
+                <Viewbox Stretch="Fill" StretchDirection="DownOnly" HorizontalAlignment="Left"><!-- adjust alightment -->
                     <Grid RowDefinitions="Auto" ColumnDefinitions="Auto,*" HorizontalAlignment="Stretch">
+                        <!-- height 40 and font-size 40 is equal max height -->
                         <Svg Path="/Assets/Home/music.svg" Height="40" />
                         <Viewbox Grid.Column="1">
                             <TextBlock FontSize="40">Go back</TextBlock>
