@@ -9,6 +9,23 @@
 
     <ScrollViewer>
         <StackPanel HorizontalAlignment="Stretch" Background="Green">
+            <Viewbox>
+                <Button Command="{Binding NavigateCommand}" CommandParameter="back" HorizontalAlignment="Stretch" MaxHeight="40">
+                    <RelativePanel VerticalAlignment="Center">
+                        <Svg x:Name="MySvg" Path="/Assets/Home/music.svg"  />
+                        <Viewbox HorizontalAlignment="Left" RelativePanel.RightOf="MySvg">
+                            <TextBlock >Go back</TextBlock>
+                        </Viewbox>
+                        <!--
+                        <Rectangle x:Name="RedRect" Fill="Red" Height="44" Width="44" />
+                        <Rectangle x:Name="BlueRect" Fill="Blue"
+                                   Height="44" Width="88"
+                                   RelativePanel.RightOf="RedRect" />
+                                   -->
+                    </RelativePanel>
+                </Button>
+            </Viewbox>
+            <!--
             <Button Command="{Binding NavigateCommand}" CommandParameter="back" HorizontalAlignment="Stretch"
                     MaxHeight="80">
                 <Grid ColumnDefinitions="Auto,Auto">
@@ -18,6 +35,7 @@
                     </Viewbox>
                 </Grid>
             </Button>
+            -->
         </StackPanel>
 
         <!-- does not stretch buttons
