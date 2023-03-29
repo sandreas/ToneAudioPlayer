@@ -2,8 +2,8 @@ using System;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
+using Avalonia.SimpleRouter;
 using Microsoft.Extensions.DependencyInjection;
-using ToneAudioPlayer.Services;
 using ToneAudioPlayer.ViewModels;
 using ToneAudioPlayer.Views;
 
@@ -41,7 +41,7 @@ public partial class App : Application
     private static ServiceProvider ConfigureServices()
     {
         var services = new ServiceCollection();
-        services.AddSingleton<HistoryRouter<ViewModelBase>>();
+        services.AddSingleton<HistoryRouter<ViewModelBase>>(s => new HistoryRouter<ViewModelBase>((t) => (ViewModelBase)Convert.ChangeType(s.GetRequiredService(t), t)));
         
         
         services.AddSingleton<MainViewModel>();

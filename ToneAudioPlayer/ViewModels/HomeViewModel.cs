@@ -1,5 +1,5 @@
+using Avalonia.SimpleRouter;
 using CommunityToolkit.Mvvm.Input;
-using ToneAudioPlayer.Services;
 
 namespace ToneAudioPlayer.ViewModels;
 
