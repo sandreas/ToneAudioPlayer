@@ -5,9 +5,9 @@ namespace ToneAudioPlayer.ViewModels;
 
 public partial class SettingsViewModel: ViewModelBase
 {
-    private readonly Router<ViewModelBase> _router;
+    private readonly HistoryRouter<ViewModelBase> _router;
 
-    public SettingsViewModel(Router<ViewModelBase> router)
+    public SettingsViewModel(HistoryRouter<ViewModelBase> router)
     {
         _router = router;
     }

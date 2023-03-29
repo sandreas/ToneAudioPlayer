@@ -41,7 +41,7 @@ public partial class App : Application
     private static ServiceProvider ConfigureServices()
     {
         var services = new ServiceCollection();
-        services.AddSingleton<Router<ViewModelBase>>();
+        services.AddSingleton<HistoryRouter<ViewModelBase>>();
         
         
         services.AddSingleton<MainViewModel>();
