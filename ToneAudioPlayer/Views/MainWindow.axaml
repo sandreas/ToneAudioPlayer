@@ -6,7 +6,7 @@
         xmlns:views="clr-namespace:ToneAudioPlayer.Views"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="ToneAudioPlayer.Views.MainWindow"
-        Icon="/Assets/avalonia-logo.ico"
+        Icon="/Assets/icon.ico"
         Title="ToneAudioPlayer">
         <views:MainView />
 </Window>
