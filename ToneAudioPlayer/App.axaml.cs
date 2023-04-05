@@ -9,7 +9,7 @@ using ToneAudioPlayer.Views;
 
 namespace ToneAudioPlayer;
 
-public partial class App : Application
+public class App : Application
 {
     public override void Initialize()
     {
@@ -41,9 +41,8 @@ public partial class App : Application
     private static ServiceProvider ConfigureServices()
     {
         var services = new ServiceCollection();
-        services.AddSingleton<HistoryRouter<ViewModelBase>>(s => new HistoryRouter<ViewModelBase>((t) => (ViewModelBase)Convert.ChangeType(s.GetRequiredService(t), t)));
-        
-        
+        services.AddSingleton<HistoryRouter<ViewModelBase>>(s => new HistoryRouter<ViewModelBase>(t => (ViewModelBase)s.GetRequiredService(t)));
+
         services.AddSingleton<MainViewModel>();
         services.AddTransient<HomeViewModel>();
         services.AddTransient<SettingsViewModel>();
