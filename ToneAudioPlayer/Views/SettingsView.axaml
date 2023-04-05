@@ -8,13 +8,13 @@
              x:DataType="viewModels:SettingsViewModel">
 
     <ScrollViewer>
-        <StackPanel HorizontalAlignment="Stretch" Background="Green">
+        <StackPanel HorizontalAlignment="Stretch">
             <Button Command="{Binding NavigateCommand}" CommandParameter="back" HorizontalAlignment="Stretch">
-                <Viewbox Stretch="Fill" StretchDirection="DownOnly" HorizontalAlignment="Left"><!-- adjust alightment -->
+                <Viewbox Stretch="Fill" StretchDirection="DownOnly" HorizontalAlignment="Left" Margin="10"><!-- adjust alightment -->
                     <Grid RowDefinitions="Auto" ColumnDefinitions="Auto,*" HorizontalAlignment="Stretch">
                         <!-- height 40 and font-size 40 is equal max height -->
-                        <Svg Path="/Assets/Home/music.svg" Height="40" />
-                        <Viewbox Grid.Column="1">
+                        <Svg Grid.Column="0" Path="/Assets/Images/Icons/All/back.svg" Height="40" />
+                        <Viewbox Grid.Column="1" VerticalAlignment="Center" Margin="10 5 0 0">
                             <TextBlock FontSize="40">Go back</TextBlock>
                         </Viewbox>
 
