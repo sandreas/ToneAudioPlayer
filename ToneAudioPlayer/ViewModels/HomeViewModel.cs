@@ -22,6 +22,9 @@ public partial class HomeViewModel: ViewModelBase
                 break;
             case "settings":
                 _router.GoTo<SettingsViewModel>();
+                break;            
+            case "search":
+                _router.GoTo<SearchViewModel>();
                 break;
         }
     }

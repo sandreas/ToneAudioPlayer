@@ -31,9 +31,12 @@ public class Audiobookshelf
         UpdateCredentials(credentials);
     }
     
-    public async Task<AbstractResponse> LoginAsync(Credentials credentials, CancellationToken? cancellationToken = null)
+    public async Task<AbstractResponse> LoginAsync(Credentials? credentials=null, CancellationToken? cancellationToken = null)
     {
-        UpdateCredentials(credentials);
+        if (credentials != null)
+        {
+            UpdateCredentials(credentials);            
+        }
         return await ValidateOrRenewTokenAsync(TimeSpan.Zero, cancellationToken);
     }
     
@@ -105,7 +108,13 @@ public class Audiobookshelf
         var content = new StringContent(json, Encoding.UTF8, "application/json");
         return await _http.PostAsync(url, content, ct);
     }
-
+    private async Task<HttpResponseMessage> PatchJsonAsync<T>(string url, T request, CancellationToken ct)
+    {
+        // todo: use SerializeAsync(new MemoryStream(), request, options)
+        var json = JsonSerializer.Serialize(request, _jsonOptions);
+        var content = new StringContent(json, Encoding.UTF8, "application/json");
+        return await _http.PatchAsync(url, content, ct);
+    }
 
     private static bool VerifyToken(string token, TimeSpan rt)
     {
@@ -132,6 +141,7 @@ public class Audiobookshelf
     
     public async Task<AbstractResponse> GetLibrariesAsync(CancellationToken? cancellationToken = null)
     {
+        await ValidateOrRenewTokenAsync();
         var responseMessage = await _http.GetAsync("api/libraries", cancellationToken ?? CancellationToken.None);
         if (responseMessage.IsSuccessStatusCode)
         {
@@ -142,6 +152,8 @@ public class Audiobookshelf
     
     public async Task<AbstractResponse> SearchLibraryAsync(string libraryId, string query, CancellationToken? cancellationToken = null)
     {
+        await ValidateOrRenewTokenAsync();
+
         // GET https://abs.example.com/api/libraries/<ID>/search?<q>
         var responseMessage = await _http.GetAsync(new Uri($"{_http.BaseAddress?.ToString().TrimEnd('/')}/api/libraries/{libraryId}/search?q={query}&limit=12"), cancellationToken ?? CancellationToken.None);
         if (responseMessage.IsSuccessStatusCode)
@@ -153,6 +165,8 @@ public class Audiobookshelf
     
     public async Task<AbstractResponse> GetLibraryItemsAsync(string libraryId, CancellationToken? cancellationToken = null)
     {
+        await ValidateOrRenewTokenAsync();
+
         var responseMessage = await _http.GetAsync($"api/libraries/{libraryId}/items?limit=5", cancellationToken ?? CancellationToken.None);
         if (responseMessage.IsSuccessStatusCode)
         {
@@ -163,12 +177,61 @@ public class Audiobookshelf
     
     public async Task<AbstractResponse> GetLibraryItem(string itemId, CancellationToken? cancellationToken = null)
     {
+        await ValidateOrRenewTokenAsync();
+
         var responseMessage = await _http.GetAsync($"api/items/{itemId}", cancellationToken ?? CancellationToken.None);
         if (responseMessage.IsSuccessStatusCode)
         {
             return await GenerateResponseAsync<LibraryItemResponse>(responseMessage);
         }
         return await GenerateResponseAsync<ErrorResponse>(responseMessage);
+    }
+    
+    public async Task<AbstractResponse> GetMediaProgress(string libraryItemId, string? episodeId = null, CancellationToken? cancellationToken = null)
+    {
+        await ValidateOrRenewTokenAsync();
+        // me/progress/
+
+        var responseMessage = await _http.GetAsync(BuildProgressEndpoint(libraryItemId, episodeId), cancellationToken ?? CancellationToken.None);
+        if (responseMessage.IsSuccessStatusCode)
+        {
+            return await GenerateResponseAsync<MediaProgressResponse>(responseMessage);
+        }
+        return await GenerateResponseAsync<ErrorResponse>(responseMessage);
+    }
+
+    private static string BuildProgressEndpoint(string libraryItemId, string? episodeId = null)
+    {
+        var endpoint = $"api/me/progress/{libraryItemId}";
+        if (episodeId != null)
+        {
+            endpoint += $"/{episodeId}";
+        }
+
+        return endpoint;
+    }
+    
+    public async Task<AbstractResponse> UpdateMediaProgress(MediaProgressRequest mediaProgress, string libraryItemId, string? episodeId = null,  CancellationToken? cancellationToken = null)
+    {
+        await ValidateOrRenewTokenAsync();
+        // me/progress/
+        
+        var responseMessage = await PatchJsonAsync(BuildProgressEndpoint(libraryItemId, episodeId), mediaProgress, cancellationToken ?? CancellationToken.None);
+        if (responseMessage.IsSuccessStatusCode)
+        {
+            return await GenerateResponseAsync<MediaProgressResponse>(responseMessage);
+        }
+        return await GenerateResponseAsync<ErrorResponse>(responseMessage);
+    }
+
+    public string BuildLibraryItemUrl(LibraryItem item, int fileIndex=0)
+    {
+        var audioFile = item.Media.AudioFiles.Skip(fileIndex).Take(1).FirstOrDefault();
+        if (audioFile == null)
+        {
+            return "";
+        }
+        return $"{_http.BaseAddress?.ToString().TrimEnd('/')}/api/items/{item.Id}/file/{audioFile.Ino}?token={_credentials.Token}";
     }
     
 }

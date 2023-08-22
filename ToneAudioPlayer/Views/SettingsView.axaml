@@ -22,7 +22,9 @@
                 </Viewbox>
 
             </Button>
-
+            <Grid ColumnDefinitions="*" RowDefinitions="*">
+                <TextBox x:Name="KeyLog" AcceptsReturn="True" TextWrapping="Wrap" IsReadOnly="True" Text="{Binding KeyLogContent}"/>
+            </Grid>
             <!--
             <Button Command="{Binding NavigateCommand}" CommandParameter="back" HorizontalAlignment="Stretch"
                     MaxHeight="80">

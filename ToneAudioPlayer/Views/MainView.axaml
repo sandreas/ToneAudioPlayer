@@ -3,8 +3,18 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:viewModels="clr-namespace:ToneAudioPlayer.ViewModels"
+             xmlns:system="clr-namespace:System;assembly=System.Runtime"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="ToneAudioPlayer.Views.MainView"
              x:DataType="viewModels:MainViewModel">
     <ContentControl Content="{Binding Content}"></ContentControl>
+    <!--
+    <UserControl.KeyBindings>
+        <KeyBinding Gesture="Ctrl+D1" Command="{Binding ShortCutPressedCommand}">
+            <KeyBinding.CommandParameter>
+                <system:Int32>0</system:Int32>
+            </KeyBinding.CommandParameter>
+        </KeyBinding>
+    </UserControl.KeyBindings>
+    -->
 </UserControl>
