@@ -39,7 +39,7 @@ public partial class SearchViewModel: ViewModelBase
     }
 
     [RelayCommand]
-    private async void Play(IItemIdentifier identifier)
+    private async void StartPlayback(IItemIdentifier identifier)
     {
         // Todo:
         // https://api.audiobookshelf.org/#get-a-media-progress
@@ -57,5 +57,39 @@ public partial class SearchViewModel: ViewModelBase
         _player.SeekTo(currentTime);
         */
         _player.SeekToAndPlay(currentTime);
+    }
+
+    [RelayCommand]
+    private void Prev()
+    {
+        _player.PreviousChapter();
+    }
+    
+    [RelayCommand]
+    private void Next()
+    {
+        _player.NextChapter();
+    }
+    [RelayCommand]
+    private void Pause()
+    {
+        _player.Pause();
+    }
+    
+    [RelayCommand]
+    private void Play()
+    {
+        _player.Play();
+    }
+    [RelayCommand]
+    private void SeekBack()
+    {
+        _player.Seek(TimeSpan.FromSeconds(-30));
+    }
+    
+    [RelayCommand]
+    private void SeekForward()
+    {
+        _player.Seek(TimeSpan.FromSeconds(30));
     }
 }

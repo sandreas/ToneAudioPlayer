@@ -1,5 +1,4 @@
 using System;
-using System.Diagnostics;
 using System.Threading.Tasks;
 using LibVLCSharp.Shared;
 using ToneAudioPlayer.DataSources;
@@ -8,6 +7,7 @@ namespace ToneAudioPlayer.Services;
 
 public class MediaPlayerService: IDisposable
 {
+    private const int SecondsFactor = 100000;
     private readonly MediaPlayer _mediaPlayer;
     private readonly LibVLC _libVlc;
     private readonly AudiobookshelfDataSource _dataSource;
@@ -38,10 +38,7 @@ public class MediaPlayerService: IDisposable
 
     private async void OnPositionChanged(object? sender, MediaPlayerPositionChangedEventArgs e)
     {
-        // typeof(e.Position);
-        // Debug.WriteLine($"Position Changed: {e.Position} {}");
-        // HERE!
-        await StoreProgressAsync(e.Position * 1000);
+        await StoreProgressAsync(PositionToTimeSpan(e.Position));
     }
 
 
@@ -56,7 +53,7 @@ public class MediaPlayerService: IDisposable
     {
         if (_mediaId != null)
         {
-            await _dataSource.UpdateProgressAsync(_mediaId, _mediaPlayer.Position, _mediaPlayer.Length);
+            await _dataSource.UpdateProgressAsync(_mediaId, PositionToTimeSpan(_mediaPlayer.Position), TimeSpan.FromMilliseconds(_mediaPlayer.Length));
         }
         
         _mediaId = id;
@@ -65,7 +62,18 @@ public class MediaPlayerService: IDisposable
         await media.Parse(MediaParseOptions.FetchNetwork | MediaParseOptions.ParseNetwork);
         _mediaPlayer.Media = media;
     }
-    
+
+    private static TimeSpan PositionToTimeSpan(float position)
+    {
+        try
+        {
+            return TimeSpan.FromSeconds(position * SecondsFactor);
+        }
+        catch (Exception e)
+        {
+            return TimeSpan.Zero;
+        }
+    }
     public bool IsPlaying => _mediaPlayer.IsPlaying;
     public bool Play()=>_mediaPlayer.Play();
     public void Pause() => _mediaPlayer.Pause();
@@ -88,7 +96,7 @@ public class MediaPlayerService: IDisposable
     public void NextChapter() => _mediaPlayer.NextChapter();
     public void PreviousChapter() => _mediaPlayer.PreviousChapter();
 
-    public void Seek(long offsetMilliSeconds) => _mediaPlayer.SeekTo(TimeSpan.FromMilliseconds(_mediaPlayer.Position + offsetMilliSeconds));
+    public void Seek(TimeSpan offset) => SeekTo(PositionToTimeSpan(_mediaPlayer.Position) + offset);
 
     public void Dispose()
     {
@@ -96,22 +104,14 @@ public class MediaPlayerService: IDisposable
         _mediaPlayer.Dispose();
         _libVlc.Dispose();
     }
-
-
-
-    /*
-    private async Task OnPositionChanged(object? sender, MediaPlayerPositionChangedEventArgs e)
-    {
-    }
-    */
-
-    private async Task<bool> StoreProgressAsync(float positionInSeconds)
+    
+    private async Task<bool> StoreProgressAsync(TimeSpan position)
     {
         if (_mediaId == null)
         {
             return false;
         }
-        return await _dataSource.UpdateProgressAsync(_mediaId, positionInSeconds, _mediaPlayer.Length);
+        return await _dataSource.UpdateProgressAsync(_mediaId, position, TimeSpan.FromMilliseconds(_mediaPlayer.Length));
     }
 }
 

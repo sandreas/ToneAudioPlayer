@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,7 +15,7 @@ public class AudiobookshelfDataSource
 {
     private readonly AudiobookshelfApi.Audiobookshelf _abs;
 
-    private readonly Dictionary<string, float> _progressStorage = new();
+    private readonly Dictionary<string, TimeSpan> _progressStorage = new();
     private readonly IAudiobookshelfSettings _settings;
     private Library? _selectedLibrary;
 
@@ -38,7 +39,7 @@ public class AudiobookshelfDataSource
 
     }
     
-    public async Task<bool> UpdateProgressAsync(IItemIdentifier id, float seconds, float totalSeconds)
+    public async Task<bool> UpdateProgressAsync(IItemIdentifier id, TimeSpan currentPosition, TimeSpan totalLength)
     {
         await Init();
         if (id is not AudiobookshelfItemIdentifier absIdentifier)
@@ -55,23 +56,21 @@ public class AudiobookshelfDataSource
      return true;
  }
  */
-        // totalSeconds = 100%
-        // seconds = ?%
-        
-        // totalSeconds = 3500
-        // seconds = 18
 
-        var progress = 100 / totalSeconds * seconds;
-        _progressStorage[absIdentifier.Id] = seconds;
+        var progressAsFloat = 100 / totalLength.TotalMilliseconds * currentPosition.TotalMilliseconds;
+        _progressStorage[absIdentifier.Id] = currentPosition;
         
         var progressRequest = new MediaProgressRequest()
         {
-            // CurrentTime = seconds,
-            Progress = progress,
-            IsFinished = totalSeconds - seconds < 10
+            CurrentTime = currentPosition.TotalSeconds,
+            Progress = progressAsFloat,
+            IsFinished = totalLength - currentPosition < TimeSpan.FromSeconds(10)
         };
         var response = await _abs.UpdateMediaProgressAsync(progressRequest, absIdentifier.Id);
-        return response is MediaProgressResponse;
+
+        var success = response is MediaProgressResponse;
+        // Debug.WriteLine($"currentTime: {seconds}, progress: {progress}, success: {success}");
+        return success;
     }
 
     public async Task<AbstractResponse> GetMediaProgressAsync(IItemIdentifier libraryItemId,
