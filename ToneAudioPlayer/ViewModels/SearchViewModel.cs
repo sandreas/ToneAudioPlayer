@@ -1,28 +1,20 @@
 using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using AudiobookshelfApi;
 using AudiobookshelfApi.Models;
 using AudiobookshelfApi.Responses;
 using Avalonia.Collections;
-using Avalonia.SimpleRouter;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using LibVLCSharp.Shared;
+using ToneAudioPlayer.DataSources;
 using ToneAudioPlayer.Services;
 using ToneAudioPlayer.ViewModels.Search;
-using Media = AudiobookshelfApi.Models.Media;
 
 namespace ToneAudioPlayer.ViewModels;
 
 public partial class SearchViewModel: ViewModelBase
 {
-    private readonly Audiobookshelf _abs;
-
-    private Library? _selectedLibrary;
+    private readonly AudiobookshelfDataSource _dataSource;
     
     [ObservableProperty] 
     private string _query = "";
@@ -32,53 +24,26 @@ public partial class SearchViewModel: ViewModelBase
 
     private readonly MediaPlayerService _player;
 
-    public SearchViewModel(Audiobookshelf abs, MediaPlayerService player)
+    public SearchViewModel(AudiobookshelfDataSource dataSource, MediaPlayerService player)
     {
-        _abs = abs;
+        _dataSource = dataSource;
         _player = player;
     }
 
     [RelayCommand]
     private async void Search(string q)
     {
-        
-        if (_selectedLibrary == null)
-        {
-            var response = await _abs.GetLibrariesAsync();
-            if (response is LibrariesResponse lr)
-            {
-                _selectedLibrary = lr.Libraries.FirstOrDefault();
-            }
-        }
-
-        if (_selectedLibrary == null)
-        {
-            return;
-        }
-
-        var searchResponse = await _abs.SearchLibraryAsync(_selectedLibrary.Id, q);
-
-        if (searchResponse is SearchLibraryResponse sr)
-        {
-            SearchResults.Clear();
-            SearchResults.AddRange(
-                sr.Book
-                    .Select(b => new SearchResultViewModel
-                    {
-                        Title = b.LibraryItem.Media.Metadata.Title,
-                        LibraryItem = b.LibraryItem
-                    })
-                );
-        }
-        
+        var dataSourceResults = await _dataSource.SearchAsync(q);
+        SearchResults.Clear();
+        SearchResults.AddRange(dataSourceResults);
     }
 
     [RelayCommand]
-    private async void Play(SearchResultViewModel searchResult)
+    private async void Play(IItemIdentifier identifier)
     {
         // Todo:
         // https://api.audiobookshelf.org/#get-a-media-progress
-        var progressResponse = await _abs.GetMediaProgress(searchResult.LibraryItem.Id);
+        var progressResponse = await _dataSource.GetMediaProgressAsync(identifier);
 
         var currentTime = TimeSpan.Zero;
         if (progressResponse is MediaProgressResponse mpr)
@@ -86,9 +51,11 @@ public partial class SearchViewModel: ViewModelBase
             currentTime = TimeSpan.FromSeconds(mpr.CurrentTime);
         }
         
-        _player.UpdateMedia(_abs.BuildLibraryItemUrl(searchResult.LibraryItem));
+        await _player.UpdateMediaAsync(identifier);
+        /*
         _player.Play();
         _player.SeekTo(currentTime);
-
+        */
+        _player.SeekToAndPlay(currentTime);
     }
 }

@@ -22,9 +22,10 @@
                 </Viewbox>
 
             </Button>
-            <Grid ColumnDefinitions="*" RowDefinitions="*">
-                <TextBox x:Name="KeyLog" AcceptsReturn="True" TextWrapping="Wrap" IsReadOnly="True" Text="{Binding KeyLogContent}"/>
-            </Grid>
+            <TextBox Text="{Binding Url}"/>
+            <TextBox Text="{Binding Username}"/>
+            <TextBox Text="{Binding Password}" PasswordChar="*"/>
+            <Button Command="{Binding SaveCommand}" Content="Save"/>
             <!--
             <Button Command="{Binding NavigateCommand}" CommandParameter="back" HorizontalAlignment="Stretch"
                     MaxHeight="80">

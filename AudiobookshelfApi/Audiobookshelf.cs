@@ -187,7 +187,7 @@ public class Audiobookshelf
         return await GenerateResponseAsync<ErrorResponse>(responseMessage);
     }
     
-    public async Task<AbstractResponse> GetMediaProgress(string libraryItemId, string? episodeId = null, CancellationToken? cancellationToken = null)
+    public async Task<AbstractResponse> GetMediaProgressAsync(string libraryItemId, string? episodeId = null, CancellationToken? cancellationToken = null)
     {
         await ValidateOrRenewTokenAsync();
         // me/progress/
@@ -203,7 +203,7 @@ public class Audiobookshelf
     private static string BuildProgressEndpoint(string libraryItemId, string? episodeId = null)
     {
         var endpoint = $"api/me/progress/{libraryItemId}";
-        if (episodeId != null)
+        if (!string.IsNullOrEmpty(episodeId))
         {
             endpoint += $"/{episodeId}";
         }
@@ -211,17 +211,40 @@ public class Audiobookshelf
         return endpoint;
     }
     
-    public async Task<AbstractResponse> UpdateMediaProgress(MediaProgressRequest mediaProgress, string libraryItemId, string? episodeId = null,  CancellationToken? cancellationToken = null)
+    public async Task<AbstractResponse> UpdateMediaProgressAsync(MediaProgressRequest mediaProgress, string libraryItemId, string? episodeId = null,  CancellationToken? cancellationToken = null)
     {
         await ValidateOrRenewTokenAsync();
         // me/progress/
         
         var responseMessage = await PatchJsonAsync(BuildProgressEndpoint(libraryItemId, episodeId), mediaProgress, cancellationToken ?? CancellationToken.None);
-        if (responseMessage.IsSuccessStatusCode)
+        try
         {
-            return await GenerateResponseAsync<MediaProgressResponse>(responseMessage);
+            
+            if (responseMessage.IsSuccessStatusCode)
+            {
+                // response is NON json but just `OK`, so manually generate a response
+                return new MediaProgressResponse()
+                {
+                    Progress = mediaProgress.Progress ?? 0,
+                    IsFinished = mediaProgress.IsFinished ?? false
+                };
+                /*
+                return await GenerateResponseAsync<MediaProgressResponse>(responseMessage);
+                */
+            }
+            return await GenerateResponseAsync<ErrorResponse>(responseMessage);
         }
-        return await GenerateResponseAsync<ErrorResponse>(responseMessage);
+        catch (Exception e)
+        {
+            var content = await responseMessage.Content.ReadAsStringAsync();
+            
+            return new ErrorResponse()
+            {
+                RawContent = e.Message
+            };
+        }
+
+
     }
 
     public string BuildLibraryItemUrl(LibraryItem item, int fileIndex=0)

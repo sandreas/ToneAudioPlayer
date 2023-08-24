@@ -1,6 +1,8 @@
 using System;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using LibVLCSharp.Shared;
+using ToneAudioPlayer.DataSources;
 
 namespace ToneAudioPlayer.Services;
 
@@ -8,19 +10,25 @@ public class MediaPlayerService: IDisposable
 {
     private readonly MediaPlayer _mediaPlayer;
     private readonly LibVLC _libVlc;
+    private readonly AudiobookshelfDataSource _dataSource;
 
-    public MediaPlayerService(LibVLC libVlc, MediaPlayer mediaPlayer)
+    private IItemIdentifier? _mediaId;
+    
+    public MediaPlayerService(LibVLC libVlc, MediaPlayer mediaPlayer, AudiobookshelfDataSource dataSource)
     {
         _libVlc = libVlc;
         _mediaPlayer = mediaPlayer;
+        _dataSource = dataSource;
+        
+        _mediaPlayer.PositionChanged += OnPositionChanged;
+
         // _mediaPlayer.Length // in ms
         // _mediaPlayer.Media.Duration
-        
-        
-        
+
+
+
         /*
         _mediaPlayer.TimeChanged += TimeChanged;
-        _mediaPlayer.PositionChanged += PositionChanged;
         _mediaPlayer.LengthChanged += LengthChanged;
         _mediaPlayer.EndReached += EndReached;
         _mediaPlayer.Playing += Playing;
@@ -28,7 +36,14 @@ public class MediaPlayerService: IDisposable
         */
     }
 
-    
+    private async void OnPositionChanged(object? sender, MediaPlayerPositionChangedEventArgs e)
+    {
+        // typeof(e.Position);
+        // Debug.WriteLine($"Position Changed: {e.Position} {}");
+        // HERE!
+        await StoreProgressAsync(e.Position * 1000);
+    }
+
 
     /*
     public void Enqueue()
@@ -37,10 +52,17 @@ public class MediaPlayerService: IDisposable
     }
     */
 
-    public void UpdateMedia(string mediaUrl)
+    public async Task UpdateMediaAsync(IItemIdentifier id)
     {
-        var uri = new Uri(mediaUrl);
+        if (_mediaId != null)
+        {
+            await _dataSource.UpdateProgressAsync(_mediaId, _mediaPlayer.Position, _mediaPlayer.Length);
+        }
+        
+        _mediaId = id;
+        var uri = new Uri(id.MediaUrl);
         using var media = new Media(_libVlc, uri, ":no-video");
+        await media.Parse(MediaParseOptions.FetchNetwork | MediaParseOptions.ParseNetwork);
         _mediaPlayer.Media = media;
     }
     
@@ -48,6 +70,21 @@ public class MediaPlayerService: IDisposable
     public bool Play()=>_mediaPlayer.Play();
     public void Pause() => _mediaPlayer.Pause();
     public void SeekTo(TimeSpan t) => _mediaPlayer.SeekTo(t);
+    public void SeekToAndPlay(TimeSpan t)
+    {
+        // _mediaPlayer.Media.ParsedStatus == 
+        _mediaPlayer.Play();
+        
+        // _mediaPlayer.SeekableChanged
+        /* this works
+        while (_mediaPlayer.State == VLCState.Buffering)
+        {
+                
+        }
+        */
+        _mediaPlayer.Time = Convert.ToInt64(t.TotalMilliseconds);
+    }
+
     public void NextChapter() => _mediaPlayer.NextChapter();
     public void PreviousChapter() => _mediaPlayer.PreviousChapter();
 
@@ -58,6 +95,23 @@ public class MediaPlayerService: IDisposable
         Pause();
         _mediaPlayer.Dispose();
         _libVlc.Dispose();
+    }
+
+
+
+    /*
+    private async Task OnPositionChanged(object? sender, MediaPlayerPositionChangedEventArgs e)
+    {
+    }
+    */
+
+    private async Task<bool> StoreProgressAsync(float positionInSeconds)
+    {
+        if (_mediaId == null)
+        {
+            return false;
+        }
+        return await _dataSource.UpdateProgressAsync(_mediaId, positionInSeconds, _mediaPlayer.Length);
     }
 }
 

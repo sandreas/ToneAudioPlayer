@@ -22,8 +22,8 @@
     <PackageReference Include="LibVLCSharp" Version="3.7.0" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="7.0.0" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="7.0.0" />
+    <PackageReference Include="Sandreas.Avalonia.Preferences" Version="0.0.3" />
     <PackageReference Include="Sandreas.Avalonia.SimpleRouter" Version="0.0.2" />
-    <PackageReference Include="SharpHook" Version="5.0.0" />
   </ItemGroup>
 
   <ItemGroup>

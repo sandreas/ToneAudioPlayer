@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using AudiobookshelfApi;
 using AudiobookshelfApi.Api;
 using Avalonia;
@@ -6,10 +7,11 @@ using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
+using Avalonia.Preferences;
 using Avalonia.SimpleRouter;
 using LibVLCSharp.Shared;
 using Microsoft.Extensions.DependencyInjection;
-using SharpHook;
+using ToneAudioPlayer.DataSources;
 using ToneAudioPlayer.Services;
 using ToneAudioPlayer.ViewModels;
 using ToneAudioPlayer.Views;
@@ -19,8 +21,7 @@ namespace ToneAudioPlayer;
 public class App : Application
 {
 
-    private TaskPoolGlobalHook _sharpHook = new();
-    private MediaPlayerService _mediaPlayerService;
+    private MediaPlayerService? _mediaPlayerService;
 
     public override void Initialize()
     {
@@ -31,14 +32,10 @@ public class App : Application
     {
             
         IServiceProvider services = ConfigureServices();
-
-        _sharpHook = new TaskPoolGlobalHook();
-        _sharpHook.KeyTyped += OnKeyTyped;
-        _sharpHook.KeyPressed += OnKeyPressed;
-        _sharpHook.KeyReleased += OnKeyReleased;
-        _sharpHook.RunAsync();
-
+        
         _mediaPlayerService = services.GetRequiredService<MediaPlayerService>();
+
+        
         
         Core.Initialize();
 
@@ -76,26 +73,32 @@ public class App : Application
 
     private void CleanUpBeforeExit()
     {
-        _mediaPlayerService.Dispose();
-        _sharpHook.Dispose();
+        _mediaPlayerService?.Dispose();
     }
 
 
     private static ServiceProvider ConfigureServices()
     {
-
-        
         var services = new ServiceCollection();
-        
+        services.AddSingleton<Preferences>();
+        services.AddSingleton<AppSettings>();
+
+        services.AddSingleton<IAudiobookshelfSettings>(s => s.GetRequiredService<AppSettings>());
+        services.AddSingleton<AudiobookshelfDataSource>();
+
         services.AddSingleton<HistoryRouter<ViewModelBase>>(s => new HistoryRouter<ViewModelBase>(t => (ViewModelBase)s.GetRequiredService(t)));
 
-        services.AddSingleton<Credentials>(_ => new Credentials
+        services.AddSingleton<Credentials>(s =>
         {
-            BaseAddress = new Uri(Environment.GetEnvironmentVariable("AUDIOBOOKSHELF_URL") ?? ""),
-            Username = Environment.GetEnvironmentVariable("AUDIOBOOKSHELF_USERNAME") ?? "root",
-            Password = Environment.GetEnvironmentVariable("AUDIOBOOKSHELF_PASSWORD") ?? ""
+            var settings = s.GetRequiredService<AppSettings>();
+            return new Credentials
+            {
+                BaseAddress = string.IsNullOrEmpty(settings.Url) ? null : new Uri(settings.Url),
+                Username = settings.Username,
+                Password = settings.Password
+            };
         });
-        services.AddSingleton<LibVLC>(s => new LibVLC(enableDebugLogs:false));
+        services.AddSingleton<LibVLC>(_ => new LibVLC(enableDebugLogs:false));
         services.AddSingleton<MediaPlayer>();
         services.AddSingleton<MediaPlayerService>();
 
@@ -107,7 +110,7 @@ public class App : Application
         
         // services.AddSingleton<Audiobookshelf>();
         services.AddHttpClient<Audiobookshelf>()
-            .ConfigureHttpClient((sp, httpClient) =>
+            .ConfigureHttpClient((_, httpClient) =>
             {
                 httpClient.Timeout = TimeSpan.FromSeconds(10);
             })
@@ -115,29 +118,4 @@ public class App : Application
 
         return services.BuildServiceProvider();
     }
-    
-    
-    private static void OnKeyReleased(object? sender, KeyboardHookEventArgs e)
-    {
-        AppendKeyLog("KeyReleased", e);
-    }
-
-    private static void AppendKeyLog(string keyreleased, KeyboardHookEventArgs e)
-    {
-        KeyLogContent += $"{keyreleased}: {e.Data.KeyChar}\n";
-    }
-
-    public static string KeyLogContent { get; set; } = "";
-
-    private static void OnKeyTyped(object? sender, KeyboardHookEventArgs e)
-    {
-        AppendKeyLog("KeyTyped", e);
-    }
-
-    private static void OnKeyPressed(object? sender, KeyboardHookEventArgs e)
-    {
-        AppendKeyLog("KeyPressed", e);
-    }
-    
-    
 }

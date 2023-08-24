@@ -1,47 +1,35 @@
+using AudiobookshelfApi.Models;
 using Avalonia.SimpleRouter;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using SharpHook;
+using ToneAudioPlayer.Services;
 
 namespace ToneAudioPlayer.ViewModels;
 
 public partial class SettingsViewModel: ViewModelBase
 {
     private readonly HistoryRouter<ViewModelBase> _router;
-    private readonly TaskPoolGlobalHook _sharpHook;
+    private readonly AppSettings _settings;
 
+    [ObservableProperty]
+    private string _url = "";
+    [ObservableProperty]
+    private string _username = "";
+    [ObservableProperty]
+    private string _password = "";
+    
     [ObservableProperty]
     private string _keyLogContent = "";
 
-    public SettingsViewModel(HistoryRouter<ViewModelBase> router, TaskPoolGlobalHook sharpHook)
+
+    public SettingsViewModel(HistoryRouter<ViewModelBase> router, AppSettings settings)
     {
         _router = router;
-        _sharpHook = sharpHook;
-        _sharpHook.KeyTyped += OnKeyTyped;
-        _sharpHook.KeyPressed += OnKeyPressed;
-        _sharpHook.KeyReleased += OnKeyReleased;
+        _settings = settings;
+        Url = _settings.Url;
+        Username = _settings.Username;
+        Password = _settings.Password;
     }
-
-    private void OnKeyReleased(object? sender, KeyboardHookEventArgs e)
-    {
-        AppendKeyLog("KeyReleased", e);
-    }
-
-    private void AppendKeyLog(string keyreleased, KeyboardHookEventArgs e)
-    {
-        KeyLogContent += $"{keyreleased}: {e.Data.KeyChar}\n";
-    }
-
-    private void OnKeyTyped(object? sender, KeyboardHookEventArgs e)
-    {
-        AppendKeyLog("KeyTyped", e);
-    }
-
-    private void OnKeyPressed(object? sender, KeyboardHookEventArgs e)
-    {
-        AppendKeyLog("KeyPressed", e);
-    }
-
 
     [RelayCommand]
     private void Navigate(string parameter = "")
@@ -52,6 +40,14 @@ public partial class SettingsViewModel: ViewModelBase
                 _router.Back();
                 break;
         }
+    }
+    
+    [RelayCommand]
+    private void Save()
+    {
+        _settings.Url = Url;
+        _settings.Username = Username;
+        _settings.Password = Password;
     }
 
 

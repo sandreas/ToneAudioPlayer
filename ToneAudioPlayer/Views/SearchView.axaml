@@ -15,7 +15,7 @@
         <ListBox Items="{Binding SearchResults}">
             <ListBox.ItemTemplate>
                 <DataTemplate>
-                    <Button Content="{Binding Title}" Command="{Binding #Root.((viewModels:SearchViewModel)DataContext).PlayCommand}" CommandParameter="{Binding}"/>
+                    <Button Content="{Binding Title}" Command="{Binding #Root.((viewModels:SearchViewModel)DataContext).PlayCommand}" CommandParameter="{Binding Identifier}"/>
                 </DataTemplate>
             </ListBox.ItemTemplate>
         </ListBox>
