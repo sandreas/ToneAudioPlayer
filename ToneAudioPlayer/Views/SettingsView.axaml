@@ -8,8 +8,14 @@
              x:DataType="viewModels:SettingsViewModel">
 
     <ScrollViewer>
-        <StackPanel HorizontalAlignment="Stretch">
-            <Button Command="{Binding NavigateCommand}" CommandParameter="back" HorizontalAlignment="Stretch">
+        <Grid RowDefinitions="30,Auto,20,Auto,20,Auto,20,Auto,40,Auto">
+            <TextBox Grid.Row="1" Text="{Binding Url}" />
+            <TextBox Grid.Row="3" Text="{Binding Username}" />
+            <TextBox Grid.Row="5" Text="{Binding Password}" PasswordChar="*" />
+            <Button Grid.Row="7" Command="{Binding SaveCommand}" Content="Save" />
+            
+            <Button Grid.Row="9" Command="{Binding NavigateCommand}" CommandParameter="back"
+                    HorizontalAlignment="Stretch">
                 <Viewbox Stretch="Fill" StretchDirection="DownOnly" HorizontalAlignment="Left" Margin="10"><!-- adjust alightment -->
                     <Grid RowDefinitions="Auto" ColumnDefinitions="Auto,*" HorizontalAlignment="Stretch">
                         <!-- height 40 and font-size 40 is equal max height -->
@@ -20,13 +26,10 @@
 
                     </Grid>
                 </Viewbox>
-
             </Button>
-            <TextBox Text="{Binding Url}"/>
-            <TextBox Text="{Binding Username}"/>
-            <TextBox Text="{Binding Password}" PasswordChar="*"/>
-            <Button Command="{Binding SaveCommand}" Content="Save"/>
-            <!--
+        </Grid>
+
+        <!--
             <Button Command="{Binding NavigateCommand}" CommandParameter="back" HorizontalAlignment="Stretch"
                     MaxHeight="80">
                 <Grid ColumnDefinitions="Auto,Auto">
@@ -37,7 +40,6 @@
                 </Grid>
             </Button>
             -->
-        </StackPanel>
 
         <!-- does not stretch buttons
 
