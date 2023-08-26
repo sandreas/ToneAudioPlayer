@@ -1,9 +1,6 @@
 using Foundation;
-using UIKit;
 using Avalonia;
-using Avalonia.Controls;
 using Avalonia.iOS;
-using Avalonia.Media;
 
 namespace ToneAudioPlayer.iOS;
 
@@ -15,6 +12,7 @@ public partial class AppDelegate : AvaloniaAppDelegate<App>
 {
     protected override AppBuilder CustomizeAppBuilder(AppBuilder builder)
     {
-        return builder;
+        return base.CustomizeAppBuilder(builder)
+            .WithInterFont();
     }
 }
