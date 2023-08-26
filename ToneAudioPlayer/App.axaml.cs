@@ -1,5 +1,4 @@
 using System;
-using System.Threading.Tasks;
 using AudiobookshelfApi;
 using AudiobookshelfApi.Api;
 using Avalonia;

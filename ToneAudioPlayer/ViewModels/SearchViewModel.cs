@@ -1,7 +1,4 @@
 using System;
-using System.Linq;
-using AudiobookshelfApi;
-using AudiobookshelfApi.Models;
 using AudiobookshelfApi.Responses;
 using Avalonia.Collections;
 using CommunityToolkit.Mvvm.ComponentModel;

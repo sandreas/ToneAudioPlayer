@@ -13,24 +13,20 @@
 
   <ItemGroup>
     <PackageReference Include="Avalonia" Version="$(AvaloniaVersion)" />
-    <PackageReference Include="Avalonia.Svg.Skia" Version="$(AvaloniaVersion)" />
+    <PackageReference Include="Avalonia.Svg.Skia" Version="11.0.0.1" />
     <PackageReference Include="Avalonia.Themes.Fluent" Version="$(AvaloniaVersion)" />
+    <PackageReference Include="Avalonia.Fonts.Inter" Version="$(AvaloniaVersion)" />
+    <PackageReference Include="Avalonia.ReactiveUI" Version="$(AvaloniaVersion)" />
     <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
     <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" Version="$(AvaloniaVersion)" />
-    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.1.0" />
+
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.1" />
     <PackageReference Include="CSharp.OperationResult" Version="0.1.6" />
     <PackageReference Include="LibVLCSharp" Version="3.7.0" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="7.0.0" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="7.0.0" />
     <PackageReference Include="Sandreas.Avalonia.Preferences" Version="0.0.3" />
-    <PackageReference Include="Sandreas.Avalonia.SimpleRouter" Version="0.0.2" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Update="Views\SearchView.axaml.cs">
-      <DependentUpon>SearchView.axaml</DependentUpon>
-      <SubType>Code</SubType>
-    </Compile>
+    <PackageReference Include="Sandreas.Avalonia.SimpleRouter" Version="0.0.3" />
   </ItemGroup>
 
   <ItemGroup>
