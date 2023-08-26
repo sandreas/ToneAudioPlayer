@@ -9,7 +9,8 @@ using ToneAudioPlayer;
 internal partial class Program
 {
     private static async Task Main(string[] args) => await BuildAvaloniaApp()
-        .SetupBrowserAppAsync(new BrowserPlatformOptions());
+            .WithInterFont()
+            .StartBrowserAppAsync("out");
 
     public static AppBuilder BuildAvaloniaApp()
         => AppBuilder.Configure<App>();
