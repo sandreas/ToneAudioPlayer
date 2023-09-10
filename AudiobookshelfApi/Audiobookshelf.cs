@@ -88,17 +88,30 @@ public class Audiobookshelf
     
     private static async Task<AbstractResponse> GenerateResponseAsync<T>(HttpResponseMessage responseMessage) where T : AbstractResponse, new()
     {
-        var response = responseMessage.IsSuccessStatusCode
-            ? await responseMessage.Content.ReadFromJsonAsync<T>() ?? new T()
+        try
+        {
+            var response = responseMessage.IsSuccessStatusCode
+                ? await responseMessage.Content.ReadFromJsonAsync<T>() ?? new T()
+                {
+                    RawContent = await responseMessage.Content.ReadAsStringAsync()
+                }
+                : new T
+                {
+                    RawContent = await responseMessage.Content.ReadAsStringAsync()
+                };
+            response.Message = responseMessage;
+            return response;
+        }
+        catch (Exception e)
+        {
+            var r = new ErrorResponse()
             {
-                RawContent = await responseMessage.Content.ReadAsStringAsync()
-            }
-            : new T
-            {
+                Exception = e,
                 RawContent = await responseMessage.Content.ReadAsStringAsync()
             };
-        response.Message = responseMessage;
-        return response;
+            return r;
+        }
+
     }
 
     private async Task<HttpResponseMessage> PostJsonAsync<T>(string url, T request, CancellationToken ct)
