@@ -7,18 +7,19 @@
              x:Class="ToneAudioPlayer.Views.SettingsView"
              x:DataType="viewModels:SettingsViewModel">
 
-    <ScrollViewer>
+    <ScrollViewer Classes="MainContent">
         <Grid RowDefinitions="30,Auto,20,Auto,20,Auto,20,Auto,40,Auto">
             <TextBox Grid.Row="1" Text="{Binding Url}" />
             <TextBox Grid.Row="3" Text="{Binding Username}" />
             <TextBox Grid.Row="5" Text="{Binding Password}" PasswordChar="*" />
             <Button Grid.Row="7" Command="{Binding SaveCommand}" Content="Save" />
-            
+
+            <!--
             <Button Grid.Row="9" Command="{Binding NavigateCommand}" CommandParameter="back"
                     HorizontalAlignment="Stretch">
-                <Viewbox Stretch="Fill" StretchDirection="DownOnly" HorizontalAlignment="Left" Margin="10"><!-- adjust alightment -->
+                <Viewbox Stretch="Fill" StretchDirection="DownOnly" HorizontalAlignment="Left" Margin="10"><!- adjust alightment ->
                     <Grid RowDefinitions="Auto" ColumnDefinitions="Auto,*" HorizontalAlignment="Stretch">
-                        <!-- height 40 and font-size 40 is equal max height -->
+                        <!- height 40 and font-size 40 is equal max height ->
                         <Svg Grid.Column="0" Path="/Assets/Images/Icons/All/back.svg" Height="40" />
                         <Viewbox Grid.Column="1" VerticalAlignment="Center" Margin="10 5 0 0">
                             <TextBlock FontSize="40">Go back</TextBlock>
@@ -27,6 +28,7 @@
                     </Grid>
                 </Viewbox>
             </Button>
+            -->
         </Grid>
 
         <!--

@@ -8,5 +8,5 @@
         x:Class="ToneAudioPlayer.Views.MainWindow"
         Icon="/Assets/icon.ico"
         Title="ToneAudioPlayer">
-        <views:MainView />
+    <views:MainView />
 </Window>

@@ -8,7 +8,6 @@
              x:DataType="viewModels:SearchViewModel">
 
     <StackPanel x:Name="Root">
-
         <StackPanel Orientation="Horizontal">
             <TextBox Width="200" Text="{Binding Query}" />
             <Button Content="Search" Command="{Binding SearchCommand}" CommandParameter="{Binding Query}" />
@@ -27,13 +26,18 @@
             <Button Content="⏩" Command="{Binding NextCommand}" FontSize="36" BorderBrush="Transparent"
                     Background="Transparent" />
         </StackPanel>
+        <StackPanel>
+            <TextBox Text="{Binding Logs}" AcceptsReturn="True" TextWrapping="Wrap" MaxHeight="300"/>
+        </StackPanel>
         <ListBox ItemsSource="{Binding SearchResults}">
             <ListBox.ItemTemplate>
                 <DataTemplate>
-                    <Button Content="{Binding Title}" Command="{Binding #Root.((viewModels:SearchViewModel)DataContext).StartPlaybackCommand}" CommandParameter="{Binding Identifier}"/>
+                    <Button Content="{Binding Title}"
+                            Command="{Binding #Root.((viewModels:SearchViewModel)DataContext).StartPlaybackCommand}"
+                            CommandParameter="{Binding Identifier}" />
                 </DataTemplate>
             </ListBox.ItemTemplate>
         </ListBox>
-        
+
     </StackPanel>
 </UserControl>

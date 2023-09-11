@@ -25,6 +25,7 @@ public class AudiobookshelfDataSource
         _settings = settings;
     }
 
+    
     private async Task Init()
     {
         if (_selectedLibrary != null)
@@ -73,16 +74,24 @@ public class AudiobookshelfDataSource
         return success;
     }
 
-    public async Task<AbstractResponse> GetMediaProgressAsync(IItemIdentifier libraryItemId,
+    public async Task<TimeSpan> GetMediaProgressAsync(IItemIdentifier libraryItemId,
         CancellationToken? cancellationToken = null)
     {
         if (libraryItemId is not AudiobookshelfItemIdentifier identifier)
         {
-            return new ErrorResponse();
+            return TimeSpan.MinValue;
         }
         await Init();
         
-        return await _abs.GetMediaProgressAsync(identifier.Id, null, cancellationToken);
+        var currentTime = TimeSpan.Zero;
+        var progressResponse = await _abs.GetMediaProgressAsync(identifier.Id, null, cancellationToken);
+        if (progressResponse is MediaProgressResponse mpr)
+        {
+            currentTime = TimeSpan.FromSeconds(mpr.CurrentTime);
+        }
+
+        return currentTime;
+
     }
     
     public async Task<List<SearchResultViewModel>> SearchAsync(string q)
@@ -103,7 +112,7 @@ public class AudiobookshelfDataSource
                     Identifier = new AudiobookshelfItemIdentifier()
                     {
                         Id = b.LibraryItem.Id,
-                        MediaUrl = _abs.BuildLibraryItemUrl(b.LibraryItem)
+                        MediaUrls = _abs.BuildLibraryItemUrls(b.LibraryItem)
                     },
                     Item = b.LibraryItem,
                     Title = b.LibraryItem.Media.Metadata.Title,

@@ -24,6 +24,8 @@ public class Audiobookshelf
     private readonly HttpClient _http;
     private readonly Credentials _credentials = new();
     public bool IsAuthenticated => VerifyToken(_credentials.Token, TimeSpan.Zero);
+    public bool IsConfigured => !string.IsNullOrEmpty(_http.BaseAddress?.ToString());
+    
     
     public Audiobookshelf(HttpClient http, Credentials credentials)
     {
@@ -260,14 +262,12 @@ public class Audiobookshelf
 
     }
 
-    public string BuildLibraryItemUrl(LibraryItem item, int fileIndex=0)
+    public string[] BuildLibraryItemUrls(LibraryItem item)
     {
-        var audioFile = item.Media.AudioFiles.Skip(fileIndex).Take(1).FirstOrDefault();
-        if (audioFile == null)
-        {
-            return "";
-        }
-        return $"{_http.BaseAddress?.ToString().TrimEnd('/')}/api/items/{item.Id}/file/{audioFile.Ino}?token={_credentials.Token}";
+        return item.Media.AudioFiles.Select(f =>
+                $"{_http.BaseAddress?.ToString().TrimEnd('/')}/api/items/{item.Id}/file/{f.Ino}?token={_credentials.Token}")
+            .ToArray();
+
     }
     
 }

@@ -1,29 +1,49 @@
+
 using System;
+using System.Linq;
 using System.Threading.Tasks;
-using LibVLCSharp.Shared;
+using DynamicData;
+using MediaManager;
+using MediaManager.Library;
+using MediaManager.Playback;
 using ToneAudioPlayer.DataSources;
 
 namespace ToneAudioPlayer.Services;
 
-public class MediaPlayerService: IDisposable
+
+
+public class MediaPlayerService
 {
-    private const int SecondsFactor = 100000;
-    private readonly MediaPlayer _mediaPlayer;
-    private readonly LibVLC _libVlc;
+    
+    private readonly IMediaManager _mediaManager;
     private readonly AudiobookshelfDataSource _dataSource;
 
+    public event StateChangedEventHandler? StateChanged;
+    public event PositionChangedEventHandler? PositionChanged;
+
+    
     private IItemIdentifier? _mediaId;
     
-    public MediaPlayerService(LibVLC libVlc, MediaPlayer mediaPlayer, AudiobookshelfDataSource dataSource)
+    public MediaPlayerService(AudiobookshelfDataSource dataSource, IMediaManager mediaManager)
     {
-        _libVlc = libVlc;
-        _mediaPlayer = mediaPlayer;
-        _dataSource = dataSource;
-        
-        _mediaPlayer.PositionChanged += OnPositionChanged;
 
-        // _mediaPlayer.Length // in ms
-        // _mediaPlayer.Media.Duration
+        _dataSource = dataSource;
+        _mediaManager = mediaManager;
+        _mediaManager.StateChanged += OnStateChanged;
+        _mediaManager.PositionChanged += OnPositionChanged;
+
+        /*
+        _mediaManager.BufferedChanged;
+        _mediaManager.PositionChanged;
+        _mediaManager.PropertyChanged;
+        _mediaManager.MediaItemChanged;
+        _mediaManager.MediaItemFailed;
+        _mediaManager.MediaItemFinished;
+        */
+
+        // _mediaManager.StateChanged += 
+        // _mediaManager.PositionChanged += OnPositionChanged;
+
 
 
 
@@ -36,74 +56,72 @@ public class MediaPlayerService: IDisposable
         */
     }
 
-    private async void OnPositionChanged(object? sender, MediaPlayerPositionChangedEventArgs e)
+    private void OnPositionChanged(object sender, PositionChangedEventArgs e)
     {
-        await StoreProgressAsync(PositionToTimeSpan(e.Position));
+        PositionChanged?.Invoke(sender, e);
     }
 
-
-    /*
-    public void Enqueue()
+    private void OnStateChanged(object sender, StateChangedEventArgs e)
     {
-        // _mediaPlayer.SeekTo(8);
+        StateChanged?.Invoke(sender, e);
+        /*
+        e.State 
+        public enum MediaPlayerState
+        {
+            Stopped,
+            Loading,
+            Buffering,
+            Playing,
+            Paused,
+            Failed
+        }
+        */
     }
-    */
 
+    public async Task ResumeMedia(IItemIdentifier identifier)
+    {
+        // Todo:
+        // https://api.audiobookshelf.org/#get-a-media-progress
+        var currentTime = await _dataSource.GetMediaProgressAsync(identifier);
+
+        await UpdateMediaAsync(identifier);
+        await Play();
+        await SeekTo(currentTime);
+    }
+    
     public async Task UpdateMediaAsync(IItemIdentifier id)
     {
         if (_mediaId != null)
         {
-            await _dataSource.UpdateProgressAsync(_mediaId, PositionToTimeSpan(_mediaPlayer.Position), TimeSpan.FromMilliseconds(_mediaPlayer.Length));
+            await StoreProgressAsync(_mediaManager?
+                .Position ?? TimeSpan.Zero);  // _dataSource.UpdateProgressAsync(_mediaId, _mediaManager.Position, _mediaManager.Duration);
         }
         
         _mediaId = id;
-        var uri = new Uri(id.MediaUrl);
-        using var media = new Media(_libVlc, uri, ":no-video");
-        await media.Parse(MediaParseOptions.FetchNetwork | MediaParseOptions.ParseNetwork);
-        _mediaPlayer.Media = media;
-    }
 
-    private static TimeSpan PositionToTimeSpan(float position)
-    {
-        try
+        if (_mediaManager != null)
         {
-            return TimeSpan.FromSeconds(position * SecondsFactor);
+            await _mediaManager.Play(id.MediaUrls.Select(u => new MediaItem(u)));
+            await Pause();
         }
-        catch (Exception e)
-        {
-            return TimeSpan.Zero;
-        }
-    }
-    public bool IsPlaying => _mediaPlayer.IsPlaying;
-    public bool Play()=>_mediaPlayer.Play();
-    public void Pause() => _mediaPlayer.Pause();
-    public void SeekTo(TimeSpan t) => _mediaPlayer.SeekTo(t);
-    public void SeekToAndPlay(TimeSpan t)
-    {
-        // _mediaPlayer.Media.ParsedStatus == 
-        _mediaPlayer.Play();
-        
-        // _mediaPlayer.SeekableChanged
-        /* this works
-        while (_mediaPlayer.State == VLCState.Buffering)
-        {
-                
-        }
+        /*
+        _mediaManager.Queue.Clear();
+        _mediaManager.Queue.AddRange(id.MediaUrls.Select(u => new MediaItem(u)));
         */
-        _mediaPlayer.Time = Convert.ToInt64(t.TotalMilliseconds);
     }
 
-    public void NextChapter() => _mediaPlayer.NextChapter();
-    public void PreviousChapter() => _mediaPlayer.PreviousChapter();
+    public TimeSpan Duration => _mediaManager.Duration;
+    
+    public bool IsPlaying => _mediaManager.IsPlaying();
+    public Task Play() => _mediaManager.Play(); 
+    public Task Pause() =>  _mediaManager.Pause();
+    public Task SeekTo(TimeSpan t) => _mediaManager.SeekTo(t);
+    public Task Seek(TimeSpan offset) => SeekTo(_mediaManager.Position + offset);
 
-    public void Seek(TimeSpan offset) => SeekTo(PositionToTimeSpan(_mediaPlayer.Position) + offset);
-
-    public void Dispose()
-    {
-        Pause();
-        _mediaPlayer.Dispose();
-        _libVlc.Dispose();
-    }
+    
+    public Task NextChapter() => Seek(TimeSpan.FromMinutes(5));
+    public Task PreviousChapter() =>  Seek(TimeSpan.FromMinutes(-5));
+    
     
     private async Task<bool> StoreProgressAsync(TimeSpan position)
     {
@@ -111,9 +129,11 @@ public class MediaPlayerService: IDisposable
         {
             return false;
         }
-        return await _dataSource.UpdateProgressAsync(_mediaId, position, TimeSpan.FromMilliseconds(_mediaPlayer.Length));
+        return await _dataSource.UpdateProgressAsync(_mediaId, position, _mediaManager.Duration);
     }
 }
+
+
 
 /*
     public class PlaybackService

@@ -11,6 +11,7 @@
         <Style Selector="Button">
             <Setter Property="Background" Value="Transparent"></Setter>
             <Setter Property="Margin" Value="10"></Setter>
+            
         </Style>
         <Style Selector="Svg,TextBlock">
             <Setter Property="HorizontalAlignment" Value="Center"></Setter>
@@ -22,20 +23,24 @@
     </UserControl.Styles>
     <Grid ColumnDefinitions="*,*" RowDefinitions="*,*,*" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
         <Viewbox Grid.Row="0" Grid.Column="0">
-            <controls:HomeButton Text="Music" Icon="/Assets/Images/Icons/Home/music.svg" Command="{Binding NavigateCommand}"
+            <controls:HomeButton Text="Music" Icon="/Assets/Images/Icons/Home/music.svg"
+                                 Command="{Binding NavigateCommand}"
                                  CommandParameter="music" />
         </Viewbox>
 
         <Viewbox Grid.Row="0" Grid.Column="1">
-            <controls:HomeButton Text="Books" Icon="/Assets/Images/Icons/Home/audio_books.svg" Command="{Binding NavigateCommand}"
+            <controls:HomeButton Text="Books" Icon="/Assets/Images/Icons/Home/audio_books.svg"
+                                 Command="{Binding NavigateCommand}"
                                  CommandParameter="audiobooks" />
         </Viewbox>
         <Viewbox Grid.Row="1" Grid.Column="0">
-            <controls:HomeButton Text="Settings" Icon="/Assets/Images/Icons/Home/settings.svg" Command="{Binding NavigateCommand}"
+            <controls:HomeButton Text="Settings" Icon="/Assets/Images/Icons/Home/settings.svg"
+                                 Command="{Binding NavigateCommand}"
                                  CommandParameter="settings" />
         </Viewbox>
         <Viewbox Grid.Row="1" Grid.Column="1">
-            <controls:HomeButton Text="Search" Icon="/Assets/Images/Icons/Home/search.svg" Command="{Binding NavigateCommand}"
+            <controls:HomeButton Text="Search" Icon="/Assets/Images/Icons/Home/search.svg"
+                                 Command="{Binding NavigateCommand}"
                                  CommandParameter="search" />
         </Viewbox>
         <Viewbox Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2">

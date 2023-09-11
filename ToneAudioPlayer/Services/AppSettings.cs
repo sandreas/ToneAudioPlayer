@@ -9,10 +9,12 @@ public class AppSettings: IAudiobookshelfSettings
 
     public AppSettings(Preferences prefs)
     {
-        _prefs = prefs;
         
+        _prefs = prefs;
     }
 
+    public bool IsConfigured => !string.IsNullOrEmpty(Url);
+    
     public string Url
     {
         get => _prefs.Get(nameof(Url), "") ?? ""; 

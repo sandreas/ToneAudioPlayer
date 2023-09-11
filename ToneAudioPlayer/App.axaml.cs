@@ -8,9 +8,10 @@ using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using Avalonia.Preferences;
 using Avalonia.SimpleRouter;
-using LibVLCSharp.Shared;
+using MediaManager;
 using Microsoft.Extensions.DependencyInjection;
 using ToneAudioPlayer.DataSources;
+using ToneAudioPlayer.MediaManagers;
 using ToneAudioPlayer.Services;
 using ToneAudioPlayer.ViewModels;
 using ToneAudioPlayer.Views;
@@ -19,9 +20,6 @@ namespace ToneAudioPlayer;
 
 public class App : Application
 {
-
-    private MediaPlayerService? _mediaPlayerService;
-
     public override void Initialize()
     {
         AvaloniaXamlLoader.Load(this);
@@ -29,14 +27,9 @@ public class App : Application
 
     public override void OnFrameworkInitializationCompleted()
     {
-            
         IServiceProvider services = ConfigureServices();
-        
-        _mediaPlayerService = services.GetRequiredService<MediaPlayerService>();
 
-        
-        
-        Core.Initialize();
+
 
         var mainViewModel = services.GetRequiredService<MainViewModel>();
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
@@ -72,7 +65,6 @@ public class App : Application
 
     private void CleanUpBeforeExit()
     {
-        _mediaPlayerService?.Dispose();
     }
 
 
@@ -85,34 +77,47 @@ public class App : Application
         services.AddSingleton<IAudiobookshelfSettings>(s => s.GetRequiredService<AppSettings>());
         services.AddSingleton<AudiobookshelfDataSource>();
 
-        services.AddSingleton<HistoryRouter<ViewModelBase>>(s => new HistoryRouter<ViewModelBase>(t => (ViewModelBase)s.GetRequiredService(t)));
+        services.AddSingleton<HistoryRouter<ViewModelBase>>(s =>
+            new HistoryRouter<ViewModelBase>(t => (ViewModelBase)s.GetRequiredService(t)));
 
         services.AddSingleton<Credentials>(s =>
         {
             var settings = s.GetRequiredService<AppSettings>();
             return new Credentials
             {
-                BaseAddress = string.IsNullOrEmpty(settings.Url) ? null : new Uri(settings.Url),
+                BaseAddress = string.IsNullOrEmpty(settings.Url) ? new Uri("") : new Uri(settings.Url),
                 Username = settings.Username,
                 Password = settings.Password
             };
+            
         });
-        services.AddSingleton<LibVLC>(_ => new LibVLC(enableDebugLogs:false));
-        services.AddSingleton<MediaPlayer>();
-        services.AddSingleton<MediaPlayerService>();
 
         services.AddSingleton<MainViewModel>();
-        
+
         services.AddTransient<HomeViewModel>();
         services.AddTransient<SettingsViewModel>();
         services.AddTransient<SearchViewModel>();
+
+        services.AddSingleton(s =>
+        {
+            IMediaManager mgr;
+            try
+            {
+                mgr = CrossMediaManager.Current;
+            }
+            catch (Exception)
+            {
+                mgr = new DummyMediaManager();
+            }
+            
+            return new MediaPlayerService(s.GetRequiredService<AudiobookshelfDataSource>(), mgr);
+
+        });
+            
         
         // services.AddSingleton<Audiobookshelf>();
         services.AddHttpClient<Audiobookshelf>()
-            .ConfigureHttpClient((_, httpClient) =>
-            {
-                httpClient.Timeout = TimeSpan.FromSeconds(10);
-            })
+            .ConfigureHttpClient((_, httpClient) => { httpClient.Timeout = TimeSpan.FromSeconds(10); })
             .SetHandlerLifetime(TimeSpan.FromMinutes(5));
 
         return services.BuildServiceProvider();

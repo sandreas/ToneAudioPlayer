@@ -3,11 +3,96 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:viewModels="clr-namespace:ToneAudioPlayer.ViewModels"
+             xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
              xmlns:system="clr-namespace:System;assembly=System.Runtime"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="ToneAudioPlayer.Views.MainView"
              x:DataType="viewModels:MainViewModel">
-    <ContentControl Content="{Binding Content}"></ContentControl>
+    <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,*">
+        <Button Grid.Row="0" Grid.Column="1" Margin="10" ZIndex="1" Command="{Binding ToggleMenuCommand}"
+                IsVisible="{Binding !IsMenuVisible}">
+            <materialIcons:MaterialIcon Kind="Menu" Classes="MenuButton" />
+            
+        </Button>
+        <Border Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Grid.RowSpan="2" ZIndex="1"
+                IsVisible="{Binding IsMenuVisible}" Opacity="0.7" Background="Silver">
+            
+            
+            <Grid RowDefinitions="Auto,30,*,Auto" ColumnDefinitions="*,Auto" Background="Black" Margin="10">
+                <Button Grid.Row="0" Grid.Column="1" Command="{Binding ToggleMenuCommand}" >
+                    <materialIcons:MaterialIcon Kind="Close" Classes="MenuButton" />
+                </Button>
+                
+                
+                <StackPanel Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2">
+                    <Button HorizontalAlignment="Stretch" Command="{Binding NavigateCommand}" CommandParameter="home">
+                        <StackPanel Orientation="Horizontal">
+                            <materialIcons:MaterialIcon Kind="Home" Classes="MenuButton" />
+                            <TextBlock Text="Home" Classes="MenuButtonText"/>
+                        </StackPanel>
+                    </Button>
+                    <Button HorizontalAlignment="Stretch" Command="{Binding NavigateCommand}" CommandParameter="settings">
+                        <StackPanel Orientation="Horizontal">
+                            <materialIcons:MaterialIcon Kind="Settings" Classes="MenuButton" />
+                            <TextBlock Text="Settings" Classes="MenuButtonText"/>
+                        </StackPanel>
+                    </Button>
+                    <!--
+                    <Expander>
+                        <Expander.Header>
+                            <Button HorizontalAlignment="Stretch">
+                                <StackPanel Orientation="Horizontal">
+                                    <materialIcons:MaterialIcon Kind="Database" Classes="MenuButton" />
+                                    <TextBlock Text="Data sources" Classes="MenuButtonText"/>
+                                </StackPanel>
+                            </Button> 
+                        </Expander.Header>
+                        <Expander.Content>
+                                <TextBlock    Text="Test"/>
+                            
+                        </Expander.Content>
+                    </Expander>
+-->
+                </StackPanel>
+                
+                <!--
+                <Grid Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" RowDefinitions="Auto" HorizontalAlignment="Stretch">
+                    <Button Command="{Binding NavigateCommand}" CommandParameter="settings">
+                        <Grid ColumnDefinitions="Auto, *">
+                            <materialIcons:MaterialIcon Kind="Close" Classes="MenuButton" />
+                            <TextBlock Grid.Column="1" Text="Settings"/>
+                        </Grid>
+                    </Button>
+                    
+                </Grid>
+                -->
+                <!--
+                <StackPanel Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2">
+                    
+                    <Button Command="{Binding NavigateCommand}" CommandParameter="back"
+                            IsEnabled="{Binding HasPreviousRoute}" HorizontalAlignment="Center">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="x" />
+                            <TextBlock Text="x2" />    
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+                -->
+
+                <StackPanel Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Orientation="Horizontal"
+                            HorizontalAlignment="Center">
+                    <Button Content="{materialIcons:MaterialIconExt Kind=ArrowBack,Size=40}"
+                            Command="{Binding NavigateCommand}" CommandParameter="back"
+                            IsEnabled="{Binding HasPreviousRoute}" HorizontalAlignment="Center" />
+                    <Button Content="{materialIcons:MaterialIconExt Kind=ArrowForward,Size=40}"
+                            Command="{Binding NavigateCommand}" CommandParameter="forward"
+                            IsEnabled="{Binding HasNextRoute}" HorizontalAlignment="Center" />
+                </StackPanel>
+            </Grid>
+        </Border>
+        <ContentControl Grid.Row="0" Grid.Column="0" Grid.RowSpan="2" Grid.ColumnSpan="2" Content="{Binding Content}" />
+    </Grid>
+
     <!--
     <UserControl.KeyBindings>
         <KeyBinding Gesture="Ctrl+D1" Command="{Binding ShortCutPressedCommand}">
