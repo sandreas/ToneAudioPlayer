@@ -4,9 +4,33 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:viewModels="clr-namespace:ToneAudioPlayer.ViewModels"
              xmlns:controls="clr-namespace:ToneAudioPlayer.Controls"
+             xmlns:avalonia="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="ToneAudioPlayer.Views.HomeView"
              x:DataType="viewModels:HomeViewModel">
+    <Grid x:Name="Root" RowDefinitions="Auto,*,Auto">
+        
+        <StackPanel Orientation="Horizontal" Grid.Row="0">
+            <TextBlock Text="Testing"/>
+            <!--<TextBox Grid.Row="0" Grid.Column="0" Text="{Binding Query}"/>-->
+            <!--<Button Grid.Row="1" Grid.Column="2" HorizontalAlignment="Stretch" Command="{Binding SearchCommand}"
+                    CommandParameter="{Binding Query}">
+                <avalonia:MaterialIcon Kind="Search" Classes="MenuButton" />
+            </Button>-->
+        </StackPanel>
+        
+        <ListBox Grid.Row="1" ItemsSource="{Binding SearchResults}">
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <Button Content="{Binding Title}"
+                            Command="{Binding #Root.((viewModels:SearchViewModel)DataContext).StartPlaybackCommand}"
+                            CommandParameter="{Binding Identifier}" />
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+    </Grid>
+
+    <!--
     <UserControl.Styles>
         <Style Selector="Button">
             <Setter Property="Background" Value="Transparent"></Setter>
@@ -46,4 +70,5 @@
         <Viewbox Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2">
         </Viewbox>
     </Grid>
+    -->
 </UserControl>
