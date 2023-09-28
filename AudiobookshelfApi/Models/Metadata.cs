@@ -3,6 +3,17 @@ namespace AudiobookshelfApi.Models;
 public class Metadata
 {
   public string Title { get; set; } = "";
+  public string Subtitle { get; set; } = ""; 
+  public string Description { get; set; } = "";
+  public string Publisher { get; set; } = "";
+
+  public List<Person> Authors { get; set; } = new();
+  public List<string> Narrators { get; set; } = new();
+  public List<Series> Series { get; set; } = new();
+  public List<string> Genres { get; set; } = new();
+  
+  
+
 }
 /*
 "title": "Wizards First Rule",

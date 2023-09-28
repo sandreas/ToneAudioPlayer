@@ -8,6 +8,7 @@ using AudiobookshelfApi.Api;
 using AudiobookshelfApi.Models;
 using AudiobookshelfApi.Requests;
 using AudiobookshelfApi.Responses;
+using Avalonia.Media.Imaging;
 using ToneAudioPlayer.Api;
 
 namespace AudiobookshelfApi;
@@ -23,6 +24,7 @@ public class Audiobookshelf
     
     private readonly HttpClient _http;
     private readonly Credentials _credentials = new();
+
     public bool IsAuthenticated => VerifyToken(_credentials.Token, TimeSpan.Zero);
     public bool IsConfigured => !string.IsNullOrEmpty(_http.BaseAddress?.ToString());
     
@@ -48,6 +50,7 @@ public class Audiobookshelf
         _credentials.Password = credentials.Password;
         _credentials.Token = credentials.Token;
         _http.BaseAddress = credentials.BaseAddress;
+
     }
     
     private async Task<AbstractResponse> ValidateOrRenewTokenAsync(TimeSpan? refreshTimeBuffer = null, CancellationToken? cancellationToken = null)
@@ -171,6 +174,8 @@ public class Audiobookshelf
 
         // GET https://abs.example.com/api/libraries/<ID>/search?<q>
         var responseMessage = await _http.GetAsync(new Uri($"{_http.BaseAddress?.ToString().TrimEnd('/')}/api/libraries/{libraryId}/search?q={query}&limit=12"), cancellationToken ?? CancellationToken.None);
+        // for debugging
+        // var content = await responseMessage.Content.ReadAsStringAsync();
         if (responseMessage.IsSuccessStatusCode)
         {
             return await GenerateResponseAsync<SearchLibraryResponse>(responseMessage);
@@ -197,7 +202,10 @@ public class Audiobookshelf
         var responseMessage = await _http.GetAsync($"api/items/{itemId}", cancellationToken ?? CancellationToken.None);
         if (responseMessage.IsSuccessStatusCode)
         {
-            return await GenerateResponseAsync<LibraryItemResponse>(responseMessage);
+            // todo:
+            // - Decouple Model from Response (SuccessResponse<LibraryItem>, ErrorResponse<Error>)
+            // 
+            return await GenerateResponseAsync<LibraryItem>(responseMessage);
         }
         return await GenerateResponseAsync<ErrorResponse>(responseMessage);
     }
@@ -251,7 +259,7 @@ public class Audiobookshelf
         }
         catch (Exception e)
         {
-            var content = await responseMessage.Content.ReadAsStringAsync();
+            // var content = await responseMessage.Content.ReadAsStringAsync();
             
             return new ErrorResponse()
             {
@@ -262,12 +270,41 @@ public class Audiobookshelf
 
     }
 
-    public string[] BuildLibraryItemUrls(LibraryItem item)
-    {
-        return item.Media.AudioFiles.Select(f =>
-                $"{_http.BaseAddress?.ToString().TrimEnd('/')}/api/items/{item.Id}/file/{f.Ino}?token={_credentials.Token}")
-            .ToArray();
 
+    public Uri BuildMediaUrl(string id, string ino/*LibraryItem item*/)
+    {
+        return new Uri($"{_http.BaseAddress?.ToString().TrimEnd('/')}/api/items/{id}/file/{ino}?token={_credentials.Token}");
+        /*
+        return item.Media.AudioFiles.Select(f =>
+                new DataSourceMediaItem()
+                {
+                    Id = f.Ino.ToString(),
+                    Url = new Uri($"{_http.BaseAddress?.ToString().TrimEnd('/')}/api/items/{item.Id}/file/{f.Ino}?token={_credentials.Token}"),
+                    FileName = f.Metadata.Filename,
+                    Extension = f.Metadata.Ext, // including .
+                    // OriginalPath = f.Metadata.Path
+                })
+            .ToArray();
+        */
+    }
+    
+    
+    public async Task<MemoryStream?> LoadLibraryItemCover(string id)
+    {
+        var url = new Uri($"{_http.BaseAddress?.ToString().TrimEnd('/')}/api/items/{id}/cover");
+        // var url = new Uri("https://placehold.co/400x400.jpg?text=test");
+        try
+        {
+            var response = await _http.GetAsync(url);
+            response.EnsureSuccessStatusCode();
+            var data = await response.Content.ReadAsByteArrayAsync();
+            return new MemoryStream(data);
+        }
+        catch (HttpRequestException)
+        {
+            // Console.WriteLine($"An error occurred while downloading image '{url}' : {ex.Message}");
+            return null;
+        }
     }
     
 }
