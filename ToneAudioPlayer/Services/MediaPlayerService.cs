@@ -2,11 +2,13 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Avalonia.Controls.Primitives;
 using DynamicData;
 using MediaManager;
-using MediaManager.Library;
 using MediaManager.Playback;
 using ToneAudioPlayer.DataSources;
+using ToneAudioPlayer.DataSources.Audiobookshelf;
+using MediaItem = MediaManager.Library.MediaItem;
 
 namespace ToneAudioPlayer.Services;
 
@@ -22,7 +24,7 @@ public class MediaPlayerService
     public event PositionChangedEventHandler? PositionChanged;
 
     
-    private IItemIdentifier? _mediaId;
+    private DataSourceItem? _mediaItem;
     
     public MediaPlayerService(AudiobookshelfDataSource dataSource, IMediaManager mediaManager)
     {
@@ -78,44 +80,94 @@ public class MediaPlayerService
         */
     }
 
-    public async Task ResumeMedia(IItemIdentifier identifier)
+    
+    
+    /*
+    public async Task ResumeMedia(DataSourceItem item)
     {
         // Todo:
         // https://api.audiobookshelf.org/#get-a-media-progress
-        var currentTime = await _dataSource.GetMediaProgressAsync(identifier);
+        // var currentTime = await _dataSource.GetMediaProgressAsync(item);
 
-        await UpdateMediaAsync(identifier);
-        await Play();
+        await UpdateMediaAsync(item);
         await SeekTo(currentTime);
     }
+    */
     
-    public async Task UpdateMediaAsync(IItemIdentifier id)
+    public async Task UpdateItemAsync(DataSourceItem item)
     {
-        if (_mediaId != null)
+        if (_mediaItem == item)
         {
-            await StoreProgressAsync(_mediaManager?
-                .Position ?? TimeSpan.Zero);  // _dataSource.UpdateProgressAsync(_mediaId, _mediaManager.Position, _mediaManager.Duration);
+            return;
         }
         
-        _mediaId = id;
-
-        if (_mediaManager != null)
+        if (_mediaItem != null)
         {
-            await _mediaManager.Play(id.MediaUrls.Select(u => new MediaItem(u)));
-            await Pause();
+            _dataSource.HandleAction(_mediaItem, DataSourceAction.Remove);
         }
+
+        _mediaItem = item;
+        _dataSource.HandleAction(item, DataSourceAction.Insert);
+
+
+        var activeMedia = item.MediaItems.Count >= item.MediaItemIndex
+            ? item.MediaItems.ElementAtOrDefault(item.MediaItemIndex)
+            : item.MediaItems.FirstOrDefault();
+        if (activeMedia == null)
+        {
+            return;
+        }
+            
+        var mediaItems = item.MediaItems.Select(u => new MediaItem(u.Url.ToString())).ToList();
+        
         /*
+         // todo: check if this is the better way
         _mediaManager.Queue.Clear();
-        _mediaManager.Queue.AddRange(id.MediaUrls.Select(u => new MediaItem(u)));
+        _mediaManager.Queue.AddRange(mediaItems);
+        _mediaManager.Queue.CurrentIndex = item.MediaItemIndex;
+        await _mediaManager.SeekTo(activeMedia.Position);
         */
+        
+        // don't use local Play/Pause/SeekTo to prevent HandleEvent on DataSource
+        await _mediaManager.Play(mediaItems);
+        await _mediaManager.Pause();
+        _mediaManager.Queue.CurrentIndex = item.MediaItemIndex;
+        await _mediaManager.SeekTo(activeMedia.Position);
+    }
+
+    public async Task ToggleAsync()
+    {
+        if (IsPlaying)
+        {
+            await PauseAsync();
+        }
+        else
+        {
+            await PlayAsync();
+        }
     }
 
     public TimeSpan Duration => _mediaManager.Duration;
     
-    public bool IsPlaying => _mediaManager.IsPlaying();
-    public Task Play() => _mediaManager.Play(); 
-    public Task Pause() =>  _mediaManager.Pause();
-    public Task SeekTo(TimeSpan t) => _mediaManager.SeekTo(t);
+    public bool IsPlaying => _mediaItem?.Status == DataSourceItemStatus.Playing || _mediaManager.IsPlaying();
+
+
+    public async Task PlayAsync()
+    {
+        _dataSource.HandleAction(_mediaItem, DataSourceAction.Play);
+        await _mediaManager.Play(); 
+    }
+
+    public async Task PauseAsync() 
+    {
+        _dataSource.HandleAction(_mediaItem, DataSourceAction.Pause);
+        await _mediaManager.Pause(); 
+    }
+
+    public async Task SeekTo(TimeSpan t)    {
+        _dataSource.HandleAction(_mediaItem, DataSourceAction.SeekTo, t);
+        await _mediaManager.SeekTo(t); 
+    }
     public Task Seek(TimeSpan offset) => SeekTo(_mediaManager.Position + offset);
 
     
@@ -123,14 +175,16 @@ public class MediaPlayerService
     public Task PreviousChapter() =>  Seek(TimeSpan.FromMinutes(-5));
     
     
+    /*
     private async Task<bool> StoreProgressAsync(TimeSpan position)
     {
-        if (_mediaId == null)
+        if (_mediaItem == null)
         {
             return false;
         }
-        return await _dataSource.UpdateProgressAsync(_mediaId, position, _mediaManager.Duration);
+        return await _dataSource.UpdateProgressAsync(_mediaItem, position, _mediaManager.Duration);
     }
+    */
 }
 
 

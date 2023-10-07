@@ -8,26 +8,69 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="ToneAudioPlayer.Views.HomeView"
              x:DataType="viewModels:HomeViewModel">
-    <Grid x:Name="Root" RowDefinitions="Auto,*,Auto">
-        
-        <StackPanel Orientation="Horizontal" Grid.Row="0">
-            <TextBlock Text="Testing"/>
-            <!--<TextBox Grid.Row="0" Grid.Column="0" Text="{Binding Query}"/>-->
-            <!--<Button Grid.Row="1" Grid.Column="2" HorizontalAlignment="Stretch" Command="{Binding SearchCommand}"
+    <Grid x:Name="Root" RowDefinitions="Auto,*,Auto" Background="Transparent">
+
+        <Grid Grid.Row="0" ColumnDefinitions="*,10,Auto" Margin="80,10,10,10">
+            <TextBox x:Name="Query" Grid.Row="0" Grid.Column="0" Text="{Binding Query}" VerticalAlignment="Center" />
+            <!-- IsDefault="True" makes submit via enter possible -->
+            <Button IsDefault="True" Grid.Row="0" Grid.Column="2" HorizontalAlignment="Stretch" Command="{Binding SearchCommand}"
                     CommandParameter="{Binding Query}">
                 <avalonia:MaterialIcon Kind="Search" Classes="MenuButton" />
-            </Button>-->
-        </StackPanel>
-        
-        <ListBox Grid.Row="1" ItemsSource="{Binding SearchResults}">
-            <ListBox.ItemTemplate>
-                <DataTemplate>
-                    <Button Content="{Binding Title}"
+            </Button>
+        </Grid>
+        <ScrollViewer Grid.Row="1">
+            <ItemsControl ItemsSource="{Binding SearchResults}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Expander FontSize="28" HorizontalAlignment="Stretch">
+                            <Expander.Header>
+                                <Grid ColumnDefinitions="2*,15,6*,15,Auto">
+                                    <!--
+                                <Viewbox Grid.Column="0" Grid.Row="0" Grid.RowSpan="3">
+                                    <Image Source="{Binding Cover^}" />
+                                </Viewbox>
+<Image Grid.Column="0" Source="{Binding Cover^}" />
+                                                                    
+-->
+
+                                    <Image Grid.Column="0" Source="{Binding FirstCover}" />
+
+                                    <StackPanel Grid.Row="0" Grid.Column="2">
+                                        <TextBlock Text="{Binding Title}" FontSize="50" />
+                                        <TextBlock Text="{Binding Authors}" FontSize="44" />
+                                        <TextBlock Text="{Binding DownloadPercent}"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="4">
+                                        <!--
+                                        <Button Command="{Binding #Root.((viewModels:HomeViewModel)DataContext).DownloadCommand}" CommandParameter="{Binding}">
+                                            <avalonia:MaterialIcon Kind="Download" Classes="MenuButton" />
+                                        </Button>
+                                        -->
+                                        <Button Command="{Binding #Root.((viewModels:HomeViewModel)DataContext).ToggleCommand}" CommandParameter="{Binding}">
+                                            <avalonia:MaterialIcon Kind="{Binding ToggleIcon}" Classes="MenuButton" />
+                                        </Button>
+                                        
+                                    </StackPanel>
+
+
+                                </Grid>
+                            </Expander.Header>
+
+                            <Expander.Content>
+                                
+                                <TextBlock Text="{Binding Description}" TextWrapping="Wrap" />
+                            </Expander.Content>
+                        </Expander>
+                        <!--                    <Button Content="{Binding Title}"
                             Command="{Binding #Root.((viewModels:SearchViewModel)DataContext).StartPlaybackCommand}"
                             CommandParameter="{Binding Identifier}" />
-                </DataTemplate>
-            </ListBox.ItemTemplate>
-        </ListBox>
+                            -->
+
+
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
     </Grid>
 
     <!--

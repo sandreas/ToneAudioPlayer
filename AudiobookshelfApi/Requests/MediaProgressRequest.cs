@@ -2,6 +2,7 @@ namespace AudiobookshelfApi.Requests;
 
 public class MediaProgressRequest
 {
+    // Todo: Request<T>
     public string? Id { get; set; }
     public string? LibraryItemId { get; set; }
     public string? EpisodeId { get; set; }

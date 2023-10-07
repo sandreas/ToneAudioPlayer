@@ -8,12 +8,14 @@
              x:DataType="viewModels:SettingsViewModel">
 
     <ScrollViewer Classes="MainContent">
-        <Grid RowDefinitions="30,Auto,20,Auto,20,Auto,20,Auto,40,Auto">
+        <Grid RowDefinitions="30,Auto,20,Auto,20,Auto,20,Auto,Auto,20,Auto,20,Auto,40,Auto">
             <TextBox Grid.Row="1" Text="{Binding Url}" />
             <TextBox Grid.Row="3" Text="{Binding Username}" />
             <TextBox Grid.Row="5" Text="{Binding Password}" PasswordChar="*" />
-            <Button Grid.Row="7" Command="{Binding SaveCommand}" Content="Save" />
-
+            <TextBox Grid.Row="7" Text="{Binding StorageFolder}" IsReadOnly="True"/>
+            <Button Grid.Row="8" Content="Datei-Pfad wählen" Command="{Binding SelectStorageFolderCommand}"/>
+            <CheckBox Grid.Row="10" IsChecked="{Binding VerifySettings}">Verify settings</CheckBox>
+            <Button Grid.Row="12" Command="{Binding SaveCommand}" Content="Save" />
             <!--
             <Button Grid.Row="9" Command="{Binding NavigateCommand}" CommandParameter="back"
                     HorizontalAlignment="Stretch">

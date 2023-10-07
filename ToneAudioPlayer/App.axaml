@@ -26,5 +26,10 @@
             <Setter Property="FontSize" Value="38"/>
             <Setter Property="Margin" Value="5,0,0,0"/>
         </Style>
+        
+        <Style Selector="TextBox">
+            <Setter Property="FontSize" Value="30"/>
+        </Style>
+        
     </Application.Styles>
 </Application>

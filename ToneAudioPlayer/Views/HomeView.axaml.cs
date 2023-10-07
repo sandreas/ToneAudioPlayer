@@ -9,5 +9,10 @@ public partial class HomeView : UserControl
     public HomeView()
     {
         InitializeComponent();
+        var searchQueryControl = this.FindControl<TextBox>("Query");
+        if (searchQueryControl != null)
+        {
+            searchQueryControl.AttachedToVisualTree += (s,e) => searchQueryControl.Focus();
+        }
     }
 }

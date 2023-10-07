@@ -9,6 +9,7 @@
              x:Class="ToneAudioPlayer.Views.MainView"
              x:DataType="viewModels:MainViewModel">
     <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,*">
+        
         <Button Grid.Row="0" Grid.Column="1" Margin="10" ZIndex="1" Command="{Binding ToggleMenuCommand}"
                 IsVisible="{Binding !IsMenuVisible}">
             <materialIcons:MaterialIcon Kind="Menu" Classes="MenuButton" />

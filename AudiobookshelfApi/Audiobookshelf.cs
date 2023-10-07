@@ -7,9 +7,8 @@ using System.Text.Json.Serialization;
 using AudiobookshelfApi.Api;
 using AudiobookshelfApi.Models;
 using AudiobookshelfApi.Requests;
+using AudiobookshelfApi.ResponseModels;
 using AudiobookshelfApi.Responses;
-using Avalonia.Media.Imaging;
-using ToneAudioPlayer.Api;
 
 namespace AudiobookshelfApi;
 
@@ -35,7 +34,7 @@ public class Audiobookshelf
         UpdateCredentials(credentials);
     }
     
-    public async Task<AbstractResponse> LoginAsync(Credentials? credentials=null, CancellationToken? cancellationToken = null)
+    public async Task<IResponse> LoginAsync(Credentials? credentials=null, CancellationToken? cancellationToken = null)
     {
         if (credentials != null)
         {
@@ -53,18 +52,18 @@ public class Audiobookshelf
 
     }
     
-    private async Task<AbstractResponse> ValidateOrRenewTokenAsync(TimeSpan? refreshTimeBuffer = null, CancellationToken? cancellationToken = null)
+    private async Task<IResponse> ValidateOrRenewTokenAsync(TimeSpan? refreshTimeBuffer = null, CancellationToken? cancellationToken = null)
     {
         if (VerifyToken(_credentials.Token, refreshTimeBuffer ?? TimeSpan.Zero))
         {
             ApplyAuthorizationHeader();
-            return new LoginResponse()
+            return new Response<LoginResponse>(new LoginResponse
             {
-                User = new User()
+                User = new User
                 {
                     Token = _credentials.Token
                 }
-            };
+            });
         }
 
         var loginRequest = new LoginRequest
@@ -75,48 +74,42 @@ public class Audiobookshelf
 
         var responseMessage = await PostJsonAsync("login", loginRequest, cancellationToken ?? CancellationToken.None);
         
+        var response = await GenerateResponseAsync<LoginResponse>(responseMessage);
+        if (response is not Response<LoginResponse> lr)
+        {
+            return response;
+        }
+        _credentials.Token = lr.Value.User.Token;
+        ApplyAuthorizationHeader();
+        return lr;
+    }
+
+    private static async Task<IResponse> GenerateResponseAsync<TSuccess>(HttpResponseMessage responseMessage)
+        where TSuccess:class,new()
+    {
+        
         if (!responseMessage.IsSuccessStatusCode)
         {
-            return await GenerateResponseAsync<ErrorResponse>(responseMessage);
+            return new ErrorResponse(responseMessage);
         }
-
-        var successResponse = await GenerateResponseAsync<LoginResponse>(responseMessage);
-        if (successResponse is not LoginResponse loginResponse)
-        {
-            return await GenerateResponseAsync<ErrorResponse>(responseMessage);
-        }
-
-        _credentials.Token = loginResponse.User.Token;
-        ApplyAuthorizationHeader();
-        return loginResponse;
-    }
-    
-    private static async Task<AbstractResponse> GenerateResponseAsync<T>(HttpResponseMessage responseMessage) where T : AbstractResponse, new()
-    {
+        
         try
         {
-            var response = responseMessage.IsSuccessStatusCode
-                ? await responseMessage.Content.ReadFromJsonAsync<T>() ?? new T()
-                {
-                    RawContent = await responseMessage.Content.ReadAsStringAsync()
-                }
-                : new T
-                {
-                    RawContent = await responseMessage.Content.ReadAsStringAsync()
-                };
-            response.Message = responseMessage;
-            return response;
+            var response = await responseMessage.Content.ReadFromJsonAsync<TSuccess>();
+            return new Response<TSuccess>(response ?? new TSuccess(), responseMessage)
+            {
+                RawContent = await responseMessage.Content.ReadAsStringAsync()
+            };
         }
         catch (Exception e)
         {
-            var r = new ErrorResponse()
+            var r = new ErrorResponse(responseMessage)
             {
                 Exception = e,
                 RawContent = await responseMessage.Content.ReadAsStringAsync()
             };
             return r;
-        }
-
+        } 
     }
 
     private async Task<HttpResponseMessage> PostJsonAsync<T>(string url, T request, CancellationToken ct)
@@ -157,18 +150,15 @@ public class Audiobookshelf
         _http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _credentials.Token);
     }
     
-    public async Task<AbstractResponse> GetLibrariesAsync(CancellationToken? cancellationToken = null)
+    public async Task<IResponse> GetLibrariesAsync(CancellationToken? cancellationToken = null)
     {
         await ValidateOrRenewTokenAsync();
         var responseMessage = await _http.GetAsync("api/libraries", cancellationToken ?? CancellationToken.None);
-        if (responseMessage.IsSuccessStatusCode)
-        {
+
             return await GenerateResponseAsync<LibrariesResponse>(responseMessage);
-        }
-        return await GenerateResponseAsync<ErrorResponse>(responseMessage);
     }
     
-    public async Task<AbstractResponse> SearchLibraryAsync(string libraryId, string query, CancellationToken? cancellationToken = null)
+    public async Task<IResponse> SearchLibraryAsync(string libraryId, string query, CancellationToken? cancellationToken = null)
     {
         await ValidateOrRenewTokenAsync();
 
@@ -176,51 +166,34 @@ public class Audiobookshelf
         var responseMessage = await _http.GetAsync(new Uri($"{_http.BaseAddress?.ToString().TrimEnd('/')}/api/libraries/{libraryId}/search?q={query}&limit=12"), cancellationToken ?? CancellationToken.None);
         // for debugging
         // var content = await responseMessage.Content.ReadAsStringAsync();
-        if (responseMessage.IsSuccessStatusCode)
-        {
-            return await GenerateResponseAsync<SearchLibraryResponse>(responseMessage);
-        }
-        return await GenerateResponseAsync<ErrorResponse>(responseMessage);
+
+        return await GenerateResponseAsync<SearchLibraryResponse>(responseMessage);
     }
     
-    public async Task<AbstractResponse> GetLibraryItemsAsync(string libraryId, CancellationToken? cancellationToken = null)
+    public async Task<IResponse> GetLibraryItemsAsync(string libraryId, CancellationToken? cancellationToken = null)
     {
         await ValidateOrRenewTokenAsync();
-
         var responseMessage = await _http.GetAsync($"api/libraries/{libraryId}/items?limit=5", cancellationToken ?? CancellationToken.None);
-        if (responseMessage.IsSuccessStatusCode)
-        {
-            return await GenerateResponseAsync<LibraryItemsResponse>(responseMessage);
-        }
-        return await GenerateResponseAsync<ErrorResponse>(responseMessage);
+        return await GenerateResponseAsync<LibraryItemsResponse>(responseMessage);
     }
     
-    public async Task<AbstractResponse> GetLibraryItem(string itemId, CancellationToken? cancellationToken = null)
+    public async Task<IResponse> GetLibraryItem(string itemId, CancellationToken? cancellationToken = null)
     {
         await ValidateOrRenewTokenAsync();
 
         var responseMessage = await _http.GetAsync($"api/items/{itemId}", cancellationToken ?? CancellationToken.None);
-        if (responseMessage.IsSuccessStatusCode)
-        {
-            // todo:
-            // - Decouple Model from Response (SuccessResponse<LibraryItem>, ErrorResponse<Error>)
-            // 
-            return await GenerateResponseAsync<LibraryItem>(responseMessage);
-        }
-        return await GenerateResponseAsync<ErrorResponse>(responseMessage);
+
+        return await GenerateResponseAsync<LibraryItem>(responseMessage);
     }
     
-    public async Task<AbstractResponse> GetMediaProgressAsync(string libraryItemId, string? episodeId = null, CancellationToken? cancellationToken = null)
+    public async Task<IResponse> GetMediaProgressAsync(string libraryItemId, string? episodeId = null, CancellationToken? cancellationToken = null)
     {
         await ValidateOrRenewTokenAsync();
         // me/progress/
 
         var responseMessage = await _http.GetAsync(BuildProgressEndpoint(libraryItemId, episodeId), cancellationToken ?? CancellationToken.None);
-        if (responseMessage.IsSuccessStatusCode)
-        {
-            return await GenerateResponseAsync<MediaProgressResponse>(responseMessage);
-        }
-        return await GenerateResponseAsync<ErrorResponse>(responseMessage);
+
+        return await GenerateResponseAsync<MediaProgress>(responseMessage);
     }
 
     private static string BuildProgressEndpoint(string libraryItemId, string? episodeId = null)
@@ -234,7 +207,7 @@ public class Audiobookshelf
         return endpoint;
     }
     
-    public async Task<AbstractResponse> UpdateMediaProgressAsync(MediaProgressRequest mediaProgress, string libraryItemId, string? episodeId = null,  CancellationToken? cancellationToken = null)
+    public async Task<IResponse> UpdateMediaProgressAsync(MediaProgressRequest mediaProgress, string libraryItemId, string? episodeId = null,  CancellationToken? cancellationToken = null)
     {
         await ValidateOrRenewTokenAsync();
         // me/progress/
@@ -246,24 +219,22 @@ public class Audiobookshelf
             if (responseMessage.IsSuccessStatusCode)
             {
                 // response is NON json but just `OK`, so manually generate a response
-                return new MediaProgressResponse()
+                return new Response<MediaProgress>(new MediaProgress()
                 {
                     Progress = mediaProgress.Progress ?? 0,
                     IsFinished = mediaProgress.IsFinished ?? false
-                };
-                /*
-                return await GenerateResponseAsync<MediaProgressResponse>(responseMessage);
-                */
+                });
             }
-            return await GenerateResponseAsync<ErrorResponse>(responseMessage);
+            return new ErrorResponse(responseMessage);
         }
         catch (Exception e)
         {
             // var content = await responseMessage.Content.ReadAsStringAsync();
             
-            return new ErrorResponse()
+            return new ErrorResponse(responseMessage)
             {
-                RawContent = e.Message
+                Exception = e,
+                RawContent = await responseMessage.Content.ReadAsStringAsync()
             };
         }
 

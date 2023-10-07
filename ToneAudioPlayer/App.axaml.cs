@@ -1,16 +1,20 @@
 using System;
+using System.IO;
 using AudiobookshelfApi;
 using AudiobookshelfApi.Api;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
-using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
+using Avalonia.Platform.Storage;
 using Avalonia.Preferences;
 using Avalonia.SimpleRouter;
+using LiteDB;
 using MediaManager;
 using Microsoft.Extensions.DependencyInjection;
 using ToneAudioPlayer.DataSources;
+using ToneAudioPlayer.DataSources.Audiobookshelf;
+using ToneAudioPlayer.DataSources.Local;
 using ToneAudioPlayer.MediaManagers;
 using ToneAudioPlayer.Services;
 using ToneAudioPlayer.ViewModels;
@@ -27,55 +31,57 @@ public class App : Application
 
     public override void OnFrameworkInitializationCompleted()
     {
-        IServiceProvider services = ConfigureServices();
-
-
-
-        var mainViewModel = services.GetRequiredService<MainViewModel>();
-        if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+        switch (ApplicationLifetime)
         {
-            desktop.MainWindow = new MainWindow
-            {
-                DataContext = mainViewModel,
-            };
-
-            desktop.MainWindow.Closing += OnClosing;
-        }
-        else if (ApplicationLifetime is ISingleViewApplicationLifetime singleViewPlatform)
-        {
-            singleViewPlatform.MainView = new MainView
-            {
-                DataContext = mainViewModel
-            };
-            singleViewPlatform.MainView.Unloaded += OnUnloaded;
+            case IClassicDesktopStyleApplicationLifetime desktop:
+                desktop.MainWindow = new MainWindow();
+                InitMainControl(desktop.MainWindow);
+                // desktop.MainWindow.Closing += OnClosing;
+                break;
+            case ISingleViewApplicationLifetime singleViewPlatform:
+                singleViewPlatform.MainView = new MainView();
+                InitMainControl(singleViewPlatform.MainView);
+                // singleViewPlatform.MainView.Unloaded += OnUnloaded;
+                break;
+            default:
+                throw new PlatformNotSupportedException("ApplicationLifetime has do be SingleView or ClassicDesktop");
         }
 
         base.OnFrameworkInitializationCompleted();
     }
 
-    private void OnUnloaded(object? sender, RoutedEventArgs e)
+    private static void InitMainControl(Control mainControl)
     {
-        CleanUpBeforeExit();
-    }
-
-    private void OnClosing(object? sender, WindowClosingEventArgs e)
-    {
-        CleanUpBeforeExit();
-    }
-
-    private void CleanUpBeforeExit()
-    {
+        IServiceProvider services = ConfigureServices(mainControl);
+        var mainViewModel = services.GetRequiredService<MainViewModel>();
+        mainControl.DataContext = mainViewModel;
     }
 
 
-    private static ServiceProvider ConfigureServices()
+    private static ServiceProvider ConfigureServices(Visual mainControl)
     {
         var services = new ServiceCollection();
         services.AddSingleton<Preferences>();
         services.AddSingleton<AppSettings>();
 
-        services.AddSingleton<IAudiobookshelfSettings>(s => s.GetRequiredService<AppSettings>());
+        services.AddSingleton<ILocalDataSourceSettings>(s => s.GetRequiredService<AppSettings>());
         services.AddSingleton<AudiobookshelfDataSource>();
+        services.AddSingleton<ILiteDatabase>(s =>
+        {
+            var appSettings = s.GetRequiredService<AppSettings>();
+            if (!Directory.Exists(appSettings.StorageFolder))
+            {
+                Directory.CreateDirectory(appSettings.StorageFolder);
+            }
+            return new LiteDatabase(Path.Combine(appSettings.StorageFolder, "lite.db"));
+        });
+        
+        services.AddSingleton<LocalDataSource>(s =>
+        {
+            var appSettings = s.GetRequiredService<AppSettings>();
+            var liteDb = s.GetRequiredService<ILiteDatabase>();
+            return new LocalDataSource(appSettings, liteDb);
+        });
 
         services.AddSingleton<HistoryRouter<ViewModelBase>>(s =>
             new HistoryRouter<ViewModelBase>(t => (ViewModelBase)s.GetRequiredService(t)));
@@ -83,9 +89,10 @@ public class App : Application
         services.AddSingleton<Credentials>(s =>
         {
             var settings = s.GetRequiredService<AppSettings>();
+
             return new Credentials
             {
-                BaseAddress = string.IsNullOrEmpty(settings.Url) ? new Uri("") : new Uri(settings.Url),
+                BaseAddress = string.IsNullOrEmpty(settings.Url) ? new Uri("about:blank") : new Uri(settings.Url),
                 Username = settings.Username,
                 Password = settings.Password
             };
@@ -117,9 +124,15 @@ public class App : Application
         
         // services.AddSingleton<Audiobookshelf>();
         services.AddHttpClient<Audiobookshelf>()
-            .ConfigureHttpClient((_, httpClient) => { httpClient.Timeout = TimeSpan.FromSeconds(10); })
+            .ConfigureHttpClient((_, httpClient) => { httpClient.Timeout = TimeSpan.FromSeconds(5); })
             .SetHandlerLifetime(TimeSpan.FromMinutes(5));
 
+        services.AddHttpClient<DownloadService>()
+            .ConfigureHttpClient((_, httpClient) => { httpClient.Timeout = TimeSpan.FromSeconds(5); })
+            .SetHandlerLifetime(TimeSpan.FromMinutes(5));
+        
+        services.AddSingleton<IStorageProvider>(_ => TopLevel.GetTopLevel(mainControl)?.StorageProvider!);
+        
         return services.BuildServiceProvider();
     }
 }

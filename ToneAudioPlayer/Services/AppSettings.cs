@@ -1,9 +1,11 @@
 using Avalonia.Preferences;
 using ToneAudioPlayer.DataSources;
+using ToneAudioPlayer.DataSources.Audiobookshelf;
+using ToneAudioPlayer.DataSources.Local;
 
 namespace ToneAudioPlayer.Services;
 
-public class AppSettings: IAudiobookshelfSettings
+public class AppSettings: ILocalDataSourceSettings
 {
     private readonly Preferences _prefs;
 
@@ -32,4 +34,11 @@ public class AppSettings: IAudiobookshelfSettings
         get => _prefs.Get(nameof(Password), "") ?? ""; 
         set => _prefs.Set(nameof(Password), value);
     }
+    
+    public string StorageFolder
+    {
+        get => _prefs.Get(nameof(StorageFolder), "") ?? ""; 
+        set => _prefs.Set(nameof(StorageFolder), value);
+    }
+
 }

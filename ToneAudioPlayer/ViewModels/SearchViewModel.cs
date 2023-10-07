@@ -14,6 +14,7 @@ namespace ToneAudioPlayer.ViewModels;
 
 public partial class SearchViewModel : ViewModelBase
 {
+    /*
     private readonly MediaPlayerService _player;
     private readonly AudiobookshelfDataSource _dataSource;
 
@@ -45,7 +46,7 @@ public partial class SearchViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private void StartPlayback(IItemIdentifier identifier)
+    private void StartPlayback(IDataSourceItemIdentifier identifier)
     {
         _player.ResumeMedia(identifier);
     }
@@ -85,4 +86,5 @@ public partial class SearchViewModel : ViewModelBase
     {
         _player.Seek(TimeSpan.FromSeconds(30));
     }
+    */
 }
