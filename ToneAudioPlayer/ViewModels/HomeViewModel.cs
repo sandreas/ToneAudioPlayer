@@ -52,6 +52,8 @@ public partial class HomeViewModel: ViewModelBase
             Title = dataSourceItem.Title,
             Description = dataSourceItem.Description,
             Series = dataSourceItem.Movements.FirstOrDefault()?.Name ?? "",
+            Position = dataSourceItem.TotalPosition,
+            Duration = dataSourceItem.TotalDuration
         };
     }        
 

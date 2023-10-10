@@ -21,7 +21,8 @@ public class AudiobookshelfDataSource: IDataSource
     private readonly Dictionary<string, TimeSpan> _progressStorage = new();
     private Library? _selectedLibrary;
     private readonly LocalDataSource _local;
-
+    
+    
     public AudiobookshelfDataSource(AudiobookshelfApi.Audiobookshelf abs, LocalDataSource local)
     {
         _abs = abs;
@@ -43,7 +44,7 @@ public class AudiobookshelfDataSource: IDataSource
 
     }
     
-    public async Task<bool> UpdateProgressAsync(DataSourceItem item, TimeSpan currentPosition, TimeSpan totalLength)
+    private async Task<bool> UpdateProgressAsync(DataSourceItem item, TimeSpan currentPosition, TimeSpan totalLength)
     {
         await Init();
         
@@ -70,15 +71,16 @@ public class AudiobookshelfDataSource: IDataSource
         // Debug.WriteLine($"currentTime: {seconds}, progress: {progress}, success: {success}");
         return success;
     }
+    
 
-    public async Task<TimeSpan> GetMediaProgressAsync(DataSourceItem item,
+    private async Task<TimeSpan> GetMediaProgressAsync(string itemId, string? episodeId=null,
         CancellationToken? cancellationToken = null)
     {
         
         await Init();
         
         var currentTime = TimeSpan.Zero;
-        var progressResponse = await _abs.GetMediaProgressAsync(item.Id, null, cancellationToken);
+        var progressResponse = await _abs.GetMediaProgressAsync(itemId, episodeId, cancellationToken);
         if (progressResponse is Response<MediaProgress> mpr)
         {
             currentTime = TimeSpan.FromSeconds(mpr.Value.CurrentTime);
@@ -100,7 +102,7 @@ public class AudiobookshelfDataSource: IDataSource
             return null;
         }
 
-        return LibraryItemToDataSourceItem(lir.Value);
+        return await LibraryItemToDataSourceItemAsync(lir.Value);
     }
 
 
@@ -119,10 +121,10 @@ public class AudiobookshelfDataSource: IDataSource
             return new List<DataSourceItem>();
         }
         
-        var dataSourceItems = sr.Value.Book
-            .Select(b => LibraryItemToDataSourceItem(b.LibraryItem)).ToList();
+        var dataSourceItems = await Task.WhenAll(sr.Value.Book
+            .Select(b => LibraryItemToDataSourceItemAsync(b.LibraryItem)));
             
-        foreach (var item in dataSourceItems)
+        foreach ( var item in dataSourceItems)
         {
             var stream = await _abs.LoadLibraryItemCover(item.Id);
             if (stream != null)
@@ -132,15 +134,23 @@ public class AudiobookshelfDataSource: IDataSource
                     stream
                 };
             }
+
+            
+            
         }
 
-        return dataSourceItems;
+        return dataSourceItems.ToList();
 
     }
 
-    private DataSourceItem LibraryItemToDataSourceItem(LibraryItem item)
+    private async Task<DataSourceItem> LibraryItemToDataSourceItemAsync(LibraryItem item)
     {
-        return new DataSourceItem(item.Id, BuildMediaItems(item))
+        var currentPosition = await GetMediaProgressAsync(item.Id);
+        var mediaItems = BuildMediaItems(item, currentPosition);
+        
+        
+        
+        return new DataSourceItem(item.Id, mediaItems)
         {
             Title = item.Media.Metadata.Title,
             Description = item.Media.Metadata.Description,
@@ -165,7 +175,7 @@ public class AudiobookshelfDataSource: IDataSource
         };
     }
 
-    private List<DataSourceMediaItem> BuildMediaItems(LibraryItem item)
+    private List<DataSourceMediaItem> BuildMediaItems(LibraryItem item, TimeSpan currentPosition)
     {
         /*
 var parts = f.TimeBase
@@ -180,15 +190,32 @@ if (parts.Length == 2)
     factor = parts[0] / parts[1];
 }
 */
-        return item.Media.AudioFiles.Select(f => new DataSourceMediaItem
+        // https://abs.example.com/api/me/progress/li_bufnnmp4y5o2gbbxfm/ep_lh6ko39pumnrma3dhv
+
+
+        var lengthSoFar = TimeSpan.Zero;
+        return item.Media.AudioFiles.Select(f =>
             {
-                Id = f.Ino.ToString(),
-                Url = _abs.BuildMediaUrl(item.Id,
-                    f.Ino.ToString()), // new Uri($"{_abs.BaseAddress?.ToString().TrimEnd('/')}/api/items/{item.Id}/file/{f.Ino}?token={_credentials.Token}"),
-                FileName = f.Metadata.Filename,
-                Extension = f.Metadata.Ext, // including .
-                Duration = TimeSpan.FromSeconds(f.Duration ?? 0) // TimeBase seems not be be considered
-                // OriginalPath = f.Metadata.Path
+                var itemDuration = TimeSpan.FromSeconds(f.Duration ?? 0);  // TimeBase seems not be be considered
+                var itemPosition = TimeSpan.Zero; // maybe TimeSpan.MinValue would be better, because an item can have 0 as position and be active?
+                
+                lengthSoFar += itemDuration;
+                if (lengthSoFar > currentPosition)
+                {
+                    itemPosition = lengthSoFar - itemDuration + currentPosition;
+                }
+                return new DataSourceMediaItem
+                {
+                    Id = f.Ino.ToString(),
+                    Url = _abs.BuildMediaUrl(item.Id,
+                        f.Ino.ToString()), // new Uri($"{_abs.BaseAddress?.ToString().TrimEnd('/')}/api/items/{item.Id}/file/{f.Ino}?token={_credentials.Token}"),
+                    FileName = f.Metadata.Filename,
+                    Extension = f.Metadata.Ext, // including .
+                    Position = itemPosition, // todo: calculate position and index
+                    // todo: active? instead of index
+                    Duration = itemDuration
+                    // OriginalPath = f.Metadata.Path
+                };
             })
             .ToList();
 
@@ -196,18 +223,32 @@ if (parts.Length == 2)
 
     public void HandleAction(DataSourceItem? item, DataSourceAction action, object? context=null)
     {
-        
         switch (action)
         {
             case DataSourceAction.Play:
                 UpdateItemStatus(item, DataSourceItemStatus.Playing);
-                // UpdateProgressAsync(item)
                 break;
             case DataSourceAction.Pause:
                 UpdateItemStatus(item, DataSourceItemStatus.Paused);
                 break;
+            case DataSourceAction.MediaItemChanged:
+                if (item != null && context is DataSourceMediaItem mediaItem)
+                {
+                    item.MediaItemIndex = Math.Max(item.MediaItems.IndexOf(mediaItem), 0);
+                }
+                break;
+            case DataSourceAction.PositionChanged:
+                if (item?.ActiveMediaItem != null && context is TimeSpan position)
+                {
+                    item.ActiveMediaItem.Position = position;
+                }
+                break;
         }
-        
+
+        if (item != null)
+        {
+            _ = UpdateProgressAsync(item, item.TotalPosition, item.TotalDuration);
+        }
     }
     
     private void UpdateItemStatus(DataSourceItem? item, DataSourceItemStatus status)

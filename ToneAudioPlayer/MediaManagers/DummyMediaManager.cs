@@ -130,6 +130,8 @@ public class DummyMediaManager : MediaManagerBase, IMediaManager
     {
         Queue.Clear();
         Queue.AddRange(mediaItems);
+        StateChanged?.Invoke(this, new StateChangedEventArgs(MediaPlayerState.Playing));
+        PositionChanged?.Invoke(this, new PositionChangedEventArgs(TimeSpan.FromSeconds(1)));
         return Task.FromResult(Queue.First());
     }
 

@@ -5,7 +5,9 @@ using System.Threading.Tasks;
 using Avalonia.Controls.Primitives;
 using DynamicData;
 using MediaManager;
+using MediaManager.Media;
 using MediaManager.Playback;
+using MediaManager.Player;
 using ToneAudioPlayer.DataSources;
 using ToneAudioPlayer.DataSources.Audiobookshelf;
 using MediaItem = MediaManager.Library.MediaItem;
@@ -22,10 +24,13 @@ public class MediaPlayerService
 
     public event StateChangedEventHandler? StateChanged;
     public event PositionChangedEventHandler? PositionChanged;
+    public event MediaItemChangedEventHandler? MediaItemChanged;
 
     
-    private DataSourceItem? _mediaItem;
-    
+    private DataSourceItem? _dataSourceItem;
+    private bool _blockEvents = false;
+
+
     public MediaPlayerService(AudiobookshelfDataSource dataSource, IMediaManager mediaManager)
     {
 
@@ -33,6 +38,8 @@ public class MediaPlayerService
         _mediaManager = mediaManager;
         _mediaManager.StateChanged += OnStateChanged;
         _mediaManager.PositionChanged += OnPositionChanged;
+        _mediaManager.MediaItemChanged += OnMediaItemChanged;
+        
 
         /*
         _mediaManager.BufferedChanged;
@@ -58,26 +65,50 @@ public class MediaPlayerService
         */
     }
 
+    private void OnMediaItemChanged(object sender, MediaItemEventArgs e)
+    {
+        if (_blockEvents)
+        {
+            return;
+        }
+        MediaItemChanged?.Invoke(sender, e);
+        _dataSource.HandleAction(_dataSourceItem, DataSourceAction.MediaItemChanged, e.MediaItem.Extras);
+    }
+
     private void OnPositionChanged(object sender, PositionChangedEventArgs e)
     {
+        if (_blockEvents)
+        {
+            return;
+        }
         PositionChanged?.Invoke(sender, e);
+        _dataSource.HandleAction(_dataSourceItem, DataSourceAction.PositionChanged, e.Position);
     }
 
     private void OnStateChanged(object sender, StateChangedEventArgs e)
     {
-        StateChanged?.Invoke(sender, e);
-        /*
-        e.State 
-        public enum MediaPlayerState
+        if (_blockEvents)
         {
-            Stopped,
-            Loading,
-            Buffering,
-            Playing,
-            Paused,
-            Failed
+            return;
         }
-        */
+        StateChanged?.Invoke(sender, e);
+        var action = e.State switch
+        {
+            // handled in according wrapper methods
+            // MediaPlayerState.Playing => DataSourceAction.Play,
+            // MediaPlayerState.Paused => DataSourceAction.Pause,
+            // MediaPlayerState.Stopped => DataSourceAction.Stop,
+            
+            MediaPlayerState.Loading => DataSourceAction.Loading,
+            MediaPlayerState.Buffering => DataSourceAction.Buffering,
+            MediaPlayerState.Failed => DataSourceAction.Fail,
+            _ => DataSourceAction.None
+        };
+
+        if (action != DataSourceAction.None)
+        {
+            _dataSource.HandleAction(_dataSourceItem, action);
+        }
     }
 
     
@@ -96,29 +127,29 @@ public class MediaPlayerService
     
     public async Task UpdateItemAsync(DataSourceItem item)
     {
-        if (_mediaItem == item)
+        if (_dataSourceItem == item)
         {
             return;
         }
         
-        if (_mediaItem != null)
+        if (_dataSourceItem != null)
         {
-            _dataSource.HandleAction(_mediaItem, DataSourceAction.Remove);
+            _dataSource.HandleAction(_dataSourceItem, DataSourceAction.Remove);
         }
 
-        _mediaItem = item;
+        _dataSourceItem = item;
         _dataSource.HandleAction(item, DataSourceAction.Insert);
 
-
-        var activeMedia = item.MediaItems.Count >= item.MediaItemIndex
-            ? item.MediaItems.ElementAtOrDefault(item.MediaItemIndex)
-            : item.MediaItems.FirstOrDefault();
-        if (activeMedia == null)
+        
+        if (item.ActiveMediaItem == null)
         {
             return;
         }
             
-        var mediaItems = item.MediaItems.Select(u => new MediaItem(u.Url.ToString())).ToList();
+        var mediaItems = item.MediaItems.Select(i => new MediaItem(i.Url.ToString())
+        {
+            Extras = i
+        }).ToList();
         
         /*
          // todo: check if this is the better way
@@ -127,12 +158,12 @@ public class MediaPlayerService
         _mediaManager.Queue.CurrentIndex = item.MediaItemIndex;
         await _mediaManager.SeekTo(activeMedia.Position);
         */
-        
-        // don't use local Play/Pause/SeekTo to prevent HandleEvent on DataSource
-        await _mediaManager.Play(mediaItems);
-        await _mediaManager.Pause();
-        _mediaManager.Queue.CurrentIndex = item.MediaItemIndex;
-        await _mediaManager.SeekTo(activeMedia.Position);
+
+            // don't use local Play/Pause/SeekTo to prevent HandleEvent on DataSource
+            await _mediaManager.Play(mediaItems);
+            await _mediaManager.Pause();
+            _mediaManager.Queue.CurrentIndex = item.MediaItemIndex;
+            await _mediaManager.SeekTo(item.ActiveMediaItem.Position);
     }
 
     public async Task ToggleAsync()
@@ -149,120 +180,43 @@ public class MediaPlayerService
 
     public TimeSpan Duration => _mediaManager.Duration;
     
-    public bool IsPlaying => _mediaItem?.Status == DataSourceItemStatus.Playing || _mediaManager.IsPlaying();
+    public bool IsPlaying => _dataSourceItem?.Status == DataSourceItemStatus.Playing || _mediaManager.IsPlaying();
 
+    public async Task StopAsync()
+    {
+        _dataSource.HandleAction(_dataSourceItem, DataSourceAction.Stop);
+        await _mediaManager.Stop();
+    }
 
     public async Task PlayAsync()
     {
-        _dataSource.HandleAction(_mediaItem, DataSourceAction.Play);
+        _dataSource.HandleAction(_dataSourceItem, DataSourceAction.Play);
         await _mediaManager.Play(); 
     }
 
     public async Task PauseAsync() 
     {
-        _dataSource.HandleAction(_mediaItem, DataSourceAction.Pause);
+        _dataSource.HandleAction(_dataSourceItem, DataSourceAction.Pause);
         await _mediaManager.Pause(); 
     }
 
-    public async Task SeekTo(TimeSpan t)    {
-        _dataSource.HandleAction(_mediaItem, DataSourceAction.SeekTo, t);
-        await _mediaManager.SeekTo(t); 
+    public async Task SeekTo(TimeSpan t) {
+        // handled via OnPositionChanged
+        try
+        {
+            _blockEvents = true;
+            _dataSource.HandleAction(_dataSourceItem, DataSourceAction.PositionChanged, t);
+            await _mediaManager.SeekTo(t);
+        }
+        finally
+        {
+            _blockEvents = false;
+        }
+
     }
     public Task Seek(TimeSpan offset) => SeekTo(_mediaManager.Position + offset);
 
     
     public Task NextChapter() => Seek(TimeSpan.FromMinutes(5));
     public Task PreviousChapter() =>  Seek(TimeSpan.FromMinutes(-5));
-    
-    
-    /*
-    private async Task<bool> StoreProgressAsync(TimeSpan position)
-    {
-        if (_mediaItem == null)
-        {
-            return false;
-        }
-        return await _dataSource.UpdateProgressAsync(_mediaItem, position, _mediaManager.Duration);
-    }
-    */
 }
-
-
-
-/*
-    public class PlaybackService
-    {
-        readonly LibVLC _libVLC;
-        readonly MediaPlayer _mp;
-        const long OFFSET = 5000;
-
-        public PlaybackService()
-        {
-            if (DesignMode.IsDesignModeEnabled) return;
-
-            Core.Initialize();
-
-            _libVLC = new LibVLC();
-
-            _mp = new MediaPlayer(_libVLC);
-        }
-
-        public void Init()
-        {
-            // create a libvlc media
-            // disable video output, we only need audio
-            using (var media = new Media(_libVLC, new Uri("https://archive.org/download/ImagineDragons_201410/imagine%20dragons.mp4"), ":no-video"))
-                _mp.Media = media;
-
-            // subscribe to libvlc playback events
-            _mp.TimeChanged += TimeChanged;
-            _mp.PositionChanged += PositionChanged;
-            _mp.LengthChanged += LengthChanged;
-            _mp.EndReached += EndReached;
-            _mp.Playing += Playing;
-            _mp.Paused += Paused;
-
-            // subscribe to UI app events for seeking.
-
-            MessagingCenter.Subscribe<string>(MessengerKeys.App, MessengerKeys.Rewind, vm =>
-            {
-                Debug.WriteLine("Rewind");
-                _mp.Time -= OFFSET;
-            });
-
-            MessagingCenter.Subscribe<string>(MessengerKeys.App, MessengerKeys.Forward, vm =>
-            {
-                Debug.WriteLine("Forward");
-                _mp.Time += OFFSET;
-            });
-        }
-
-
-        public void Play(bool play)
-        {
-            if (play)
-                _mp.Play();
-            else _mp.Pause();
-        }
-
-        // when the libvlc mediaplayer events fire, publish an event with the MessagingCenter
-
-        private void PositionChanged(object sender, MediaPlayerPositionChangedEventArgs e) =>
-            MessagingCenter.Send(MessengerKeys.App, MessengerKeys.Position, e.Position);
-
-        private void Paused(object sender, System.EventArgs e) =>
-            MessagingCenter.Send(MessengerKeys.App, MessengerKeys.Play, false);
-
-        private void Playing(object sender, System.EventArgs e) =>
-            MessagingCenter.Send(MessengerKeys.App, MessengerKeys.Play, true);
-
-        private void EndReached(object sender, System.EventArgs e) =>
-            MessagingCenter.Send(MessengerKeys.App, MessengerKeys.EndReached);
-
-        private void LengthChanged(object sender, MediaPlayerLengthChangedEventArgs e) =>
-            MessagingCenter.Send(MessengerKeys.App, MessengerKeys.Length, e.Length);
-
-        private void TimeChanged(object sender, MediaPlayerTimeChangedEventArgs e) =>
-            MessagingCenter.Send(MessengerKeys.App, MessengerKeys.Time, e.Time);
-    }
-    */

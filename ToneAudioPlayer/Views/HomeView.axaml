@@ -39,6 +39,8 @@
                                         <TextBlock Text="{Binding Title}" FontSize="50" />
                                         <TextBlock Text="{Binding Authors}" FontSize="44" />
                                         <TextBlock Text="{Binding DownloadPercent}"/>
+                                        <TextBlock Text="{Binding Position}"/>
+                                        <TextBlock Text="{Binding Duration}"/>
                                     </StackPanel>
                                     <StackPanel Grid.Column="4">
                                         <!--

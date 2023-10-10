@@ -2,11 +2,15 @@ namespace ToneAudioPlayer.DataSources;
 
 public enum DataSourceAction
 {
+    None,
     Remove,
     Insert,
     Play,
     Pause,
-    SeekTo,
+    Stop,
+    MediaItemChanged,
+    PositionChanged,
+    
     Next,
     Previous,
     NextChapter,
@@ -17,5 +21,8 @@ public enum DataSourceAction
     StepBack,
     
     AddToFavorites,
-    
+
+    Loading,
+    Buffering,
+    Fail
 }

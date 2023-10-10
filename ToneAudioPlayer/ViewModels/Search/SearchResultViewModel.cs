@@ -21,6 +21,8 @@ public partial class SearchResultViewModel: ViewModelBase
     [ObservableProperty] private string _narrators = "";
     [ObservableProperty] private string _series = "";
     [ObservableProperty] private string _genre = "";
+    [ObservableProperty] private TimeSpan _position = TimeSpan.Zero;
+    [ObservableProperty] private TimeSpan _duration = TimeSpan.Zero;
     
     public Bitmap? FirstCover => Item.Covers.Count > 0 ? new Bitmap(Item.Covers.First()) : null;
 
